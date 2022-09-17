@@ -1,0 +1,7 @@
+[tool.isort]
+profile = "black"
+src_paths = ["compilers", "tests"]
+
+[tool.mypy]
+disallow_untyped_defs = true
+check_untyped_defs = true
