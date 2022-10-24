@@ -27,3 +27,9 @@ def test_nonterminal_is_immutable() -> None:
     terminal = Nonterminal("<expr>")
     with pytest.raises(FrozenInstanceError):
         terminal.value = "<number>"  # type: ignore
+
+
+def test_nonterminal_doesnt_equal_terminal() -> None:
+    nonterminal = Nonterminal("<expr>")
+    terminal = Terminal("<expr>")
+    assert terminal != nonterminal
