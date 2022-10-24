@@ -1,5 +1,4 @@
-from abc import ABC
+from .terminals import Terminal
+from .nonterminals import Nonterminal
 
-
-class Symbol(ABC):
-    value: str
+Symbol = Nonterminal | Terminal
