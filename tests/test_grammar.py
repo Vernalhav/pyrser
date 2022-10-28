@@ -53,3 +53,25 @@ def test_grammar_gets_production() -> None:
 
     g = Grammar([expr_production, factor_production, term_production])
     assert g.get_production(expr) == expr_production
+
+
+def test_first_of_terminal_production() -> None:
+    minus = Terminal("-")
+    number = Nonterminal("<number>")
+    negative = Nonterminal("<negative>")
+
+    negative_production = Production(negative, [(minus, number)])
+    g = Grammar([negative_production])
+
+    assert g.get_first(negative) == {minus}
+
+
+def test_first_of_multiple_terminal_productions() -> None:
+    zero = Terminal("0")
+    one = Terminal("1")
+    bit = Nonterminal("<bit>")
+
+    bit_production = Production(bit, [zero, one])
+    g = Grammar([bit_production])
+
+    assert g.get_first(bit) == {zero, one}

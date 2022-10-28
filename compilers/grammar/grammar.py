@@ -1,8 +1,9 @@
 from typing import Iterable, Mapping
 
-from compilers.grammar.nonterminals import Nonterminal
-
+from .nonterminals import Nonterminal
 from .productions import Production
+from .symbols import is_terminal
+from .terminals import Terminal
 
 
 class Grammar:
@@ -15,3 +16,10 @@ class Grammar:
 
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self.productions[nonterminal]
+
+    def get_first(self, nonterminal: Nonterminal) -> set[Terminal]:
+        first: set[Terminal] = set()
+        for derivation in self.get_production(nonterminal).derivations:
+            if is_terminal(derivation[0]):
+                first.add(derivation[0])
+        return first
