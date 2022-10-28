@@ -1,0 +1,22 @@
+attrs==22.1.0
+black==22.8.0
+click==8.1.3
+# Editable Git install with no remote (compilers==0.0.0)
+-e /home/victor/code/compilers
+flake8==5.0.4
+iniconfig==1.1.1
+isort==5.10.1
+mccabe==0.7.0
+mypy==0.971
+mypy-extensions==0.4.3
+packaging==21.3
+pathspec==0.10.1
+platformdirs==2.5.2
+pluggy==1.0.0
+py==1.11.0
+pycodestyle==2.9.1
+pyflakes==2.5.0
+pyparsing==3.0.9
+pytest==7.1.3
+tomli==2.0.1
+typing_extensions==4.3.0
