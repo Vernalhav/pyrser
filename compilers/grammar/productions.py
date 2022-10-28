@@ -10,10 +10,18 @@ class Production:
     nullable: bool
 
     def __init__(
-        self, nonterminal: Nonterminal, derivations: Iterable[tuple[Symbol, ...]]
+        self,
+        nonterminal: Nonterminal,
+        derivations: Iterable[tuple[Symbol, ...] | Symbol],
     ) -> None:
         self.nonterminal = nonterminal
         self.derivations = set(
-            derivation for derivation in derivations if len(derivation) > 0
+            derivation if isinstance(derivation, tuple) else (derivation,)
+            for derivation in derivations
+            if isinstance(derivation, tuple) and len(derivation) > 0
         )
-        self.nullable = any(len(derivation) == 0 for derivation in derivations)
+        self.nullable = any(
+            len(derivation) == 0
+            for derivation in derivations
+            if isinstance(derivation, tuple)
+        )
