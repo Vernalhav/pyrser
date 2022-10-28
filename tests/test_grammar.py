@@ -28,6 +28,15 @@ def test_production_isnt_nullable() -> None:
     assert production.nullable is False
 
 
+def test_single_symbol_production_gets_added() -> None:
+    zero = Terminal("0")
+    one = Terminal("1")
+    bit = Nonterminal("<bit>")
+
+    bit_production = Production(bit, [zero, one])
+    assert len(bit_production.derivations) == 2
+
+
 def test_grammar_gets_production() -> None:
     expr = Nonterminal("<expr>")
     factor = Nonterminal("<factor>")
