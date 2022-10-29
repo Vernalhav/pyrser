@@ -42,7 +42,7 @@ class Grammar:
     def _update_first(self, nonterminal: Nonterminal) -> bool:
         """
         Updates `nonterminal`'s first set with a single pass.
-        Returns whether new symbols were added
+        Returns whether new symbols were added.
         """
         updated_first_set = self._get_first_pass(nonterminal)
         changed = len(updated_first_set) != len(self._first_sets[nonterminal])
