@@ -91,6 +91,21 @@ def test_first_of_nonterminal_derivation() -> None:
     assert g.get_first(number) == {minus, one, two}
 
 
+def test_first_multiple_nonterminal_derivations() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    A = Nonterminal("<A>")
+    B = Nonterminal("<B>")
+    C = Nonterminal("<C>")
+
+    A_produciion = Production(A, [a])
+    B_produciion = Production(B, [b])
+    C_production = Production(C, [A, B])
+    g = Grammar([A_produciion, B_produciion, C_production])
+
+    assert g.get_first(C) == {a, b}
+
+
 def test_first_of_recursive_derivation() -> None:
     one = Terminal("1")
     two = Terminal("2")
@@ -102,3 +117,19 @@ def test_first_of_recursive_derivation() -> None:
     g = Grammar([number_production, digit_production])
 
     assert g.get_first(number) == {one, two}
+
+
+def test_first_of_cyclic_derivations() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    c = Terminal("c")
+    A = Nonterminal("<A>")
+    B = Nonterminal("<B>")
+    C = Nonterminal("<C>")
+
+    A_produciion = Production(A, [C, a])
+    B_produciion = Production(B, [A, b])
+    C_production = Production(C, [B, c])
+    g = Grammar([A_produciion, B_produciion, C_production])
+
+    assert g.get_first(C) == {a, b, c}
