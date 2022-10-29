@@ -10,6 +10,10 @@ class Grammar:
     _productions: Mapping[Nonterminal, Production]
     _first_sets: MutableMapping[Nonterminal, FirstSet]
 
+    @property
+    def nonterminals(self) -> Iterable[Nonterminal]:
+        return self._productions.keys()
+
     def __init__(self, productions: Iterable[Production]) -> None:
         self._productions = {
             production.nonterminal: production for production in productions
@@ -22,10 +26,6 @@ class Grammar:
 
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self._productions[nonterminal]
-
-    @property
-    def nonterminals(self) -> Iterable[Nonterminal]:
-        return self._productions.keys()
 
     def get_first(self, nonterminal: Nonterminal) -> FirstSet:
         changed = True
