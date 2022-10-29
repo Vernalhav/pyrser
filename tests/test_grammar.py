@@ -162,7 +162,7 @@ def test_first_of_nullable_derivation() -> None:
     assert g.get_first(B) == {a, b, c}
 
 
-def test_nullable_nonterminal_is_nullable() -> None:
+def test_direct_nullable_is_nullable() -> None:
     a = Terminal("a")
     A = Nonterminal("<A>")
 
@@ -171,3 +171,17 @@ def test_nullable_nonterminal_is_nullable() -> None:
 
     assert g.get_first(A).nullable
 
+
+def test_indirect_nullable_is_nullable() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    A = Nonterminal("<A>")
+    B = Nonterminal("<B>")
+    C = Nonterminal("<C>")
+
+    A_produciion = Production(A, [(), a])
+    B_produciion = Production(B, [(), b])
+    C_produciion = Production(C, [(A, B)])
+    g = Grammar([A_produciion, B_produciion, C_produciion])
+
+    assert g.get_first(C).nullable

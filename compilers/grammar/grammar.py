@@ -2,7 +2,7 @@ from typing import Iterable, Mapping, MutableMapping
 
 from .first_set import FirstSet
 from .nonterminals import Nonterminal
-from .productions import Production
+from .productions import Derivation, Production
 from .symbols import is_nonterminal, is_terminal
 
 
@@ -49,24 +49,33 @@ class Grammar:
 
     def _get_first_pass(self, nonterminal: Nonterminal) -> FirstSet:
         """
-        Performs a single scan over `nonterminal`'s derivations.
+        Performs a single scan over `nonterminal`'s derivations,
+        returning its current First set.
         """
         first = FirstSet()
 
-        first.nullable = self.get_production(nonterminal).nullable
-
         for derivation in self.get_production(nonterminal).derivations:
-            for symbol in derivation:
-                if is_terminal(symbol):
-                    first.add(symbol)
-                    break
-
-                elif is_nonterminal(symbol):
-                    first.update(self._first_sets[symbol])
-                    if not self.get_production(symbol).nullable:
-                        break
+            is_nullable = self._process_derivation(first, derivation)
+            first.nullable |= is_nullable  # If any derivation is nullable, `first` is.
 
         return first
+
+    def _process_derivation(self, first: FirstSet, derivation: Derivation) -> bool:
+        """
+        Performs a pass of adding first symbols coming from
+        the given derivation to the set.
+        Returns whether or not the `derivation` is nullable.
+        """
+        for symbol in derivation:
+            if is_terminal(symbol):
+                first.add(symbol)
+                return False
+
+            elif is_nonterminal(symbol):
+                first.update(self._first_sets[symbol])
+                if not self.get_production(symbol).nullable:
+                    return False
+        return True
 
     def _validate_grammar(self) -> None:
         for production in self._productions.values():
