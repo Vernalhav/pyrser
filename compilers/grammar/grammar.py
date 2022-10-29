@@ -23,18 +23,21 @@ class Grammar:
         }
 
         self._validate_grammar()
+        self._calculate_first_sets()
 
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self._productions[nonterminal]
 
     def get_first(self, nonterminal: Nonterminal) -> FirstSet:
+        return self._first_sets[nonterminal]
+
+    def _calculate_first_sets(self) -> None:
         changed = True
         while changed:
             changed = any(
                 self._update_first(current_nonterminal)
                 for current_nonterminal in self.nonterminals
             )
-        return self._first_sets[nonterminal]
 
     def _update_first(self, nonterminal: Nonterminal) -> bool:
         """
