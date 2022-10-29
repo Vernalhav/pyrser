@@ -30,20 +30,29 @@ class Grammar:
         return self._productions.keys()
 
     def get_first(self, nonterminal: Nonterminal) -> FirstSet:
-
         changed = True
         while changed:
-            changed = False
-            for current_nonterminal in self.nonterminals:
-                new_symbols = self._get_new_first_pass(current_nonterminal)
-                self._first_sets[current_nonterminal].update(new_symbols)
-
-                if len(new_symbols) > 0:
-                    changed = True
+            changed = any(
+                self._update_first(current_nonterminal)
+                for current_nonterminal in self.nonterminals
+            )
 
         return self._first_sets[nonterminal]
 
+    def _update_first(self, nonterminal: Nonterminal) -> bool:
+        """
+        Updates `nonterminal`'s first set with a single pass.
+        Returns whether new symbols were added
+        """
+        new_symbols = self._get_new_first_pass(nonterminal)
+        self._first_sets[nonterminal].update(new_symbols)
+        return len(new_symbols) > 0
+
     def _get_new_first_pass(self, nonterminal: Nonterminal) -> FirstSet:
+        """
+        Performs a single scan over `nonterminal`'s derivations.
+        Returning any new first symbols that aren't in the current set.
+        """
         first: FirstSet = set()
 
         for derivation in self.get_production(nonterminal).derivations:
