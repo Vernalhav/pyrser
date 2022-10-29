@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Iterable, Mapping
 
 from .nonterminals import Nonterminal
@@ -5,7 +7,10 @@ from .productions import Production
 from .symbols import is_nonterminal, is_terminal
 from .terminals import Terminal
 
-FirstSet = set[Terminal]
+
+class FirstSet(set[Terminal]):
+    def remove_terminals(self, terminals: set[Terminal]) -> FirstSet:
+        return FirstSet(self - terminals)
 
 
 class Grammar:
@@ -16,7 +21,7 @@ class Grammar:
             production.nonterminal: production for production in productions
         }
         self._first_sets: dict[Nonterminal, FirstSet] = {
-            nonterminal: set() for nonterminal in self.nonterminals
+            nonterminal: FirstSet() for nonterminal in self.nonterminals
         }
         # TODO: validate production invariants
         # TODO: make productions frozendict
@@ -36,7 +41,6 @@ class Grammar:
                 self._update_first(current_nonterminal)
                 for current_nonterminal in self.nonterminals
             )
-
         return self._first_sets[nonterminal]
 
     def _update_first(self, nonterminal: Nonterminal) -> bool:
@@ -53,7 +57,7 @@ class Grammar:
         Performs a single scan over `nonterminal`'s derivations.
         Returning any new first symbols that aren't in the current set.
         """
-        first: FirstSet = set()
+        first = FirstSet()
 
         for derivation in self.get_production(nonterminal).derivations:
             head, *_ = derivation
@@ -62,4 +66,4 @@ class Grammar:
             elif is_nonterminal(head):
                 first.update(self._first_sets[head])
 
-        return first - self._first_sets[nonterminal]
+        return first.remove_terminals(self._first_sets[nonterminal])
