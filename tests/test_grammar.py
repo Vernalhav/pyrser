@@ -3,13 +3,13 @@ import pytest
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 
 
-def test_production_length_discards_nullable() -> None:
+def test_production_length_counts_nullable() -> None:
     expr = Nonterminal("<expr>")
     plus = Terminal("+")
     minus = Terminal("-")
 
     production = Production(expr, [(expr, plus, expr), (expr, minus, expr), ()])
-    assert len(production.derivations) == 2
+    assert len(production.derivations) == 3
 
 
 def test_production_is_nullable() -> None:

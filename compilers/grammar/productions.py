@@ -20,10 +20,5 @@ class Production:
         self.derivations = set(
             derivation if isinstance(derivation, tuple) else (derivation,)
             for derivation in derivations
-            if not isinstance(derivation, tuple) or len(derivation) > 0
         )
-        self.nullable = any(
-            len(derivation) == 0
-            for derivation in derivations
-            if isinstance(derivation, tuple)
-        )
+        self.nullable = any(len(derivation) == 0 for derivation in self.derivations)
