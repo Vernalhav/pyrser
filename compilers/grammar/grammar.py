@@ -1,4 +1,4 @@
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, MutableMapping
 
 from .first_set import FirstSet
 from .nonterminals import Nonterminal
@@ -8,23 +8,23 @@ from .symbols import is_nonterminal, is_terminal
 
 class Grammar:
     _productions: Mapping[Nonterminal, Production]
+    _first_sets: MutableMapping[Nonterminal, FirstSet]
 
     def __init__(self, productions: Iterable[Production]) -> None:
         self._productions = {
             production.nonterminal: production for production in productions
         }
-        self._first_sets: dict[Nonterminal, FirstSet] = {
+        self._first_sets = {
             nonterminal: FirstSet() for nonterminal in self.nonterminals
         }
-        # TODO: validate production invariants
-        # TODO: make productions frozendict
+
+        self._validate_grammar()
 
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self._productions[nonterminal]
 
     @property
     def nonterminals(self) -> Iterable[Nonterminal]:
-        # If productions is frozen, this can be a regular attribute
         return self._productions.keys()
 
     def get_first(self, nonterminal: Nonterminal) -> FirstSet:
@@ -67,3 +67,10 @@ class Grammar:
                         break
 
         return first
+
+    def _validate_grammar(self) -> None:
+        for production in self._productions.values():
+            for derivation in production.derivations:
+                for symbol in derivation:
+                    if is_nonterminal(symbol) and symbol not in self.nonterminals:
+                        raise ValueError(f"Nonterminal {symbol} has no derivation.")

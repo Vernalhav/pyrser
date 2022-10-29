@@ -57,11 +57,13 @@ def test_grammar_gets_production() -> None:
 
 def test_first_of_terminal_derivation() -> None:
     minus = Terminal("-")
+    one = Terminal("1")
     number = Nonterminal("<number>")
     negative = Nonterminal("<negative>")
 
+    number_production = Production(number, [one])
     negative_production = Production(negative, [(minus, number)])
-    g = Grammar([negative_production])
+    g = Grammar([negative_production, number_production])
 
     assert g.get_first(negative) == {minus}
 
