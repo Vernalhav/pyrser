@@ -133,3 +133,28 @@ def test_first_of_cyclic_derivations() -> None:
     g = Grammar([A_produciion, B_produciion, C_production])
 
     assert g.get_first(C) == {a, b, c}
+
+
+def test_first_of_nullable_derivation() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    c = Terminal("c")
+    A = Nonterminal("<A>")
+    B = Nonterminal("<B>")
+
+    A_produciion = Production(A, [(), a])
+    B_produciion = Production(B, [(A, c), b])
+    g = Grammar([A_produciion, B_produciion])
+
+    assert g.get_first(B) == {a, b, c}
+
+
+def test_nullable_nonterminal_is_nullable() -> None:
+    a = Terminal("a")
+    A = Nonterminal("<A>")
+
+    A_produciion = Production(A, [(), a])
+    g = Grammar([A_produciion])
+
+    assert g.get_first(A).nullable
+

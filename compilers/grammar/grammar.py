@@ -1,14 +1,22 @@
 from __future__ import annotations
 
-from typing import Iterable, Mapping
+from typing import Any, Iterable, Mapping, ParamSpec
 
 from .nonterminals import Nonterminal
 from .productions import Production
 from .symbols import is_nonterminal, is_terminal
 from .terminals import Terminal
 
+P = ParamSpec("P")
+
 
 class FirstSet(set[Terminal]):
+    nullable: bool
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.nullable = False
+
     def remove_terminals(self, terminals: set[Terminal]) -> FirstSet:
         return FirstSet(self - terminals)
 
@@ -48,22 +56,29 @@ class Grammar:
         Updates `nonterminal`'s first set with a single pass.
         Returns whether new symbols were added
         """
-        new_symbols = self._get_new_first_pass(nonterminal)
-        self._first_sets[nonterminal].update(new_symbols)
-        return len(new_symbols) > 0
+        updated_first_set = self._get_first_pass(nonterminal)
+        changed = len(updated_first_set) != len(self._first_sets[nonterminal])
 
-    def _get_new_first_pass(self, nonterminal: Nonterminal) -> FirstSet:
+        self._first_sets[nonterminal] = updated_first_set
+        return changed
+
+    def _get_first_pass(self, nonterminal: Nonterminal) -> FirstSet:
         """
         Performs a single scan over `nonterminal`'s derivations.
-        Returning any new first symbols that aren't in the current set.
         """
         first = FirstSet()
 
-        for derivation in self.get_production(nonterminal).derivations:
-            head, *_ = derivation
-            if is_terminal(head):
-                first.add(head)
-            elif is_nonterminal(head):
-                first.update(self._first_sets[head])
+        first.nullable = self.get_production(nonterminal).nullable
 
-        return first.remove_terminals(self._first_sets[nonterminal])
+        for derivation in self.get_production(nonterminal).derivations:
+            for symbol in derivation:
+                if is_terminal(symbol):
+                    first.add(symbol)
+                    break
+
+                elif is_nonterminal(symbol):
+                    first.update(self._first_sets[symbol])
+                    if not self.get_production(symbol).nullable:
+                        break
+
+        return first
