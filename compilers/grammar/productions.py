@@ -3,16 +3,18 @@ from typing import Iterable
 from .nonterminals import Nonterminal
 from .symbols import Symbol
 
+Derivation = tuple[Symbol, ...]
+
 
 class Production:
     nonterminal: Nonterminal
-    derivations: set[tuple[Symbol, ...]]
+    derivations: set[Derivation]
     nullable: bool
 
     def __init__(
         self,
         nonterminal: Nonterminal,
-        derivations: Iterable[tuple[Symbol, ...] | Symbol],
+        derivations: Iterable[Derivation | Symbol],
     ) -> None:
         self.nonterminal = nonterminal
         self.derivations = set(
