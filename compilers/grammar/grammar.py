@@ -1,24 +1,9 @@
-from __future__ import annotations
+from typing import Iterable, Mapping
 
-from typing import Any, Iterable, Mapping, ParamSpec
-
+from .first_set import FirstSet
 from .nonterminals import Nonterminal
 from .productions import Production
 from .symbols import is_nonterminal, is_terminal
-from .terminals import Terminal
-
-P = ParamSpec("P")
-
-
-class FirstSet(set[Terminal]):
-    nullable: bool
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        super().__init__(*args, **kwargs)
-        self.nullable = False
-
-    def remove_terminals(self, terminals: set[Terminal]) -> FirstSet:
-        return FirstSet(self - terminals)
 
 
 class Grammar:
