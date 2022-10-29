@@ -1,3 +1,5 @@
+import pytest
+
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 
 
@@ -35,6 +37,15 @@ def test_single_symbol_production_gets_added() -> None:
 
     bit_production = Production(bit, [zero, one])
     assert len(bit_production.derivations) == 2
+
+
+def test_invalid_grammar_rejected() -> None:
+    A = Nonterminal("<A>")
+    B = Nonterminal("<B>")
+    A_production = Production(A, [B])
+
+    with pytest.raises(ValueError):
+        Grammar([A_production])
 
 
 def test_grammar_gets_production() -> None:
