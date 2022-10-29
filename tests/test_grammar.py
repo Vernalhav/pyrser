@@ -55,7 +55,7 @@ def test_grammar_gets_production() -> None:
     assert g.get_production(expr) == expr_production
 
 
-def test_first_of_terminal_production() -> None:
+def test_first_of_terminal_derivation() -> None:
     minus = Terminal("-")
     number = Nonterminal("<number>")
     negative = Nonterminal("<negative>")
@@ -66,7 +66,7 @@ def test_first_of_terminal_production() -> None:
     assert g.get_first(negative) == {minus}
 
 
-def test_first_of_multiple_terminal_productions() -> None:
+def test_first_of_multiple_terminal_derivation() -> None:
     zero = Terminal("0")
     one = Terminal("1")
     bit = Nonterminal("<bit>")
@@ -75,3 +75,30 @@ def test_first_of_multiple_terminal_productions() -> None:
     g = Grammar([bit_production])
 
     assert g.get_first(bit) == {zero, one}
+
+
+def test_first_of_nonterminal_derivation() -> None:
+    minus = Terminal("-")
+    one = Terminal("1")
+    two = Terminal("2")
+    digit = Nonterminal("<digit>")
+    number = Nonterminal("<number>")
+
+    digit_production = Production(digit, [one, two])
+    number_production = Production(number, [(minus, digit), digit])
+    g = Grammar([number_production, digit_production])
+
+    assert g.get_first(number) == {minus, one, two}
+
+
+def test_first_of_recursive_derivation() -> None:
+    one = Terminal("1")
+    two = Terminal("2")
+    digit = Nonterminal("<digit>")
+    number = Nonterminal("<number>")
+
+    digit_production = Production(digit, [one, two])
+    number_production = Production(number, [digit, (number, digit)])
+    g = Grammar([number_production, digit_production])
+
+    assert g.get_first(number) == {one, two}
