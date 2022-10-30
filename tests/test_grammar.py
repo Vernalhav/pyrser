@@ -4,8 +4,8 @@ from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 
 
 def test_invalid_grammar_rejected() -> None:
-    A = Nonterminal("<A>")
-    B = Nonterminal("<B>")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
     A_production = Production(A, [B])
 
     with pytest.raises(ValueError):

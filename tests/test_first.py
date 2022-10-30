@@ -42,9 +42,9 @@ def test_first_of_nonterminal_derivation() -> None:
 def test_first_multiple_nonterminal_derivations() -> None:
     a = Terminal("a")
     b = Terminal("b")
-    A = Nonterminal("<A>")
-    B = Nonterminal("<B>")
-    C = Nonterminal("<C>")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
+    C = Nonterminal("C")
 
     A_produciion = Production(A, [a])
     B_produciion = Production(B, [b])
@@ -71,9 +71,9 @@ def test_first_of_cyclic_derivations() -> None:
     a = Terminal("a")
     b = Terminal("b")
     c = Terminal("c")
-    A = Nonterminal("<A>")
-    B = Nonterminal("<B>")
-    C = Nonterminal("<C>")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
+    C = Nonterminal("C")
 
     A_produciion = Production(A, [C, a])
     B_produciion = Production(B, [A, b])
@@ -87,8 +87,8 @@ def test_first_of_nullable_derivation() -> None:
     a = Terminal("a")
     b = Terminal("b")
     c = Terminal("c")
-    A = Nonterminal("<A>")
-    B = Nonterminal("<B>")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
 
     A_produciion = Production(A, [(), a])
     B_produciion = Production(B, [(A, c), b])
@@ -99,7 +99,7 @@ def test_first_of_nullable_derivation() -> None:
 
 def test_direct_nullable_is_nullable() -> None:
     a = Terminal("a")
-    A = Nonterminal("<A>")
+    A = Nonterminal("A")
 
     A_produciion = Production(A, [(), a])
     g = Grammar([A_produciion])
@@ -110,9 +110,9 @@ def test_direct_nullable_is_nullable() -> None:
 def test_indirect_nullable_is_nullable() -> None:
     a = Terminal("a")
     b = Terminal("b")
-    A = Nonterminal("<A>")
-    B = Nonterminal("<B>")
-    C = Nonterminal("<C>")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
+    C = Nonterminal("C")
 
     A_produciion = Production(A, [(), a])
     B_produciion = Production(B, [(), b])
