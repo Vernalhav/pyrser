@@ -7,6 +7,8 @@ from .productions import Derivation, Production
 from .symbols import Symbol, is_nonterminal, is_terminal
 from .terminals import Terminal
 
+END_OF_CHAIN = Terminal("$")
+
 
 class Grammar:
     symbols: FrozenSet[Symbol]
@@ -62,9 +64,12 @@ class Grammar:
     def _get_follow_pass(self, nonterminal: Nonterminal) -> FollowSet:
         follow = FollowSet()
 
-        for _, derivation in self._derivations:
+        for production_nonterminal, derivation in self._derivations:
             for next_symbol in next_symbols(nonterminal, derivation):
-                follow.update(self._first_sets[next_symbol])
+                if next_symbol != END_OF_CHAIN:
+                    follow.update(self._first_sets[next_symbol])
+                else:
+                    follow.update(self._follow_sets[production_nonterminal])
 
         return follow
 
@@ -142,6 +147,8 @@ def get_symbols(
 
 
 def next_symbols(symbol: Symbol, derivation: Derivation) -> Iterator[Symbol]:
-    for i, current_symbol in enumerate(derivation[1:], 1):
+    if len(derivation) == 0:
+        return
+    for i, current_symbol in enumerate(derivation[1:] + (END_OF_CHAIN,), 1):
         if symbol == derivation[i - 1]:
             yield current_symbol

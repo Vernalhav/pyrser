@@ -27,6 +27,22 @@ def test_follow_start_production() -> None:
     assert g.get_follow(A) == {a, b}
 
 
+def test_follow_of_last_nonterminal_adds_follow() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    c = Terminal("c")
+    E = Nonterminal("E")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
+
+    A_production = Production(A, [a, B])
+    B_production = Production(B, [c])
+    E_production = Production(E, [(A, a, A, b), b])
+
+    g = Grammar([A_production, B_production, E_production])
+    assert g.get_follow(B) == {a, b}
+
+
 # def test_follow_start_production() -> None:
 #     a = Terminal("a")
 #     b = Terminal("b")
