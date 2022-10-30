@@ -1,6 +1,7 @@
 from typing import FrozenSet, Iterable, Iterator
 
 from .first_set import FirstSet
+from .follow_set import FollowSet
 from .nonterminals import Nonterminal
 from .productions import Derivation, Production
 from .symbols import Symbol, is_nonterminal, is_terminal
@@ -21,10 +22,13 @@ class Grammar:
             production.nonterminal: production for production in productions
         }
         self._first_sets = {symbol: FirstSet() for symbol in self.symbols}
+        self._follow_sets = {
+            nonterminal: FollowSet() for nonterminal in self.nonterminals
         }
 
         self._validate_grammar()
         self._calculate_first_sets()
+        self._calculate_follow_sets()
 
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self._productions[nonterminal]
@@ -32,18 +36,37 @@ class Grammar:
     def get_first(self, nonterminal: Nonterminal) -> FirstSet:
         return self._first_sets[nonterminal]
 
+    def get_follow(self, nonterminal: Nonterminal) -> FollowSet:
+        return self._follow_sets[nonterminal]
+
     @property
     def _derivations(self) -> Iterable[tuple[Nonterminal, Derivation]]:
         for production in self._productions.values():
             for derivation in production.derivations:
                 yield production.nonterminal, derivation
 
+    def _calculate_follow_sets(self) -> None:
         changed = True
         while changed:
             changed = any(
-                self._update_first(current_nonterminal)
-                for current_nonterminal in self.nonterminals
+                self._update_follow(nonterminal) for nonterminal in self.nonterminals
             )
+
+    def _update_follow(self, nonterminal: Nonterminal) -> bool:
+        updated_follow_set = self._get_follow_pass(nonterminal)
+        changed = len(updated_follow_set) != len(self._follow_sets[nonterminal])
+
+        self._follow_sets[nonterminal] = updated_follow_set
+        return changed
+
+    def _get_follow_pass(self, nonterminal: Nonterminal) -> FollowSet:
+        follow = FollowSet()
+
+        for _, derivation in self._derivations:
+            for next_symbol in next_symbols(nonterminal, derivation):
+                follow.update(self._first_sets[next_symbol])
+
+        return follow
 
     def _calculate_first_sets(self) -> None:
         changed = True
@@ -116,3 +139,9 @@ def get_symbols(
     )
     nonterminals = frozenset(production.nonterminal for production in productions)
     return terminals, nonterminals
+
+
+def next_symbols(symbol: Symbol, derivation: Derivation) -> Iterator[Symbol]:
+    for i, current_symbol in enumerate(derivation[1:], 1):
+        if symbol == derivation[i - 1]:
+            yield current_symbol
