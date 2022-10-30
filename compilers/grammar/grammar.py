@@ -1,4 +1,4 @@
-from typing import FrozenSet, Iterable
+from typing import FrozenSet, Iterable, Iterator
 
 from .first_set import FirstSet
 from .nonterminals import Nonterminal
@@ -32,7 +32,12 @@ class Grammar:
     def get_first(self, nonterminal: Nonterminal) -> FirstSet:
         return self._first_sets[nonterminal]
 
-    def _calculate_first_sets(self) -> None:
+    @property
+    def _derivations(self) -> Iterable[tuple[Nonterminal, Derivation]]:
+        for production in self._productions.values():
+            for derivation in production.derivations:
+                yield production.nonterminal, derivation
+
         changed = True
         while changed:
             changed = any(
@@ -40,6 +45,10 @@ class Grammar:
                 for current_nonterminal in self.nonterminals
             )
 
+    def _calculate_first_sets(self) -> None:
+        changed = True
+        while changed:
+            changed = any(self._update_first(symbol) for symbol in self.symbols)
 
     def _update_first(self, nonterminal: Symbol) -> bool:
         """
@@ -86,11 +95,10 @@ class Grammar:
         # TODO: "Find" start symbol
         # TODO: Ensure only one start symbol
         # TODO: Disallow same nonterminal in multiple productions
-        for production in self._productions.values():
-            for derivation in production.derivations:
-                for symbol in derivation:
-                    if is_nonterminal(symbol) and symbol not in self.nonterminals:
-                        raise ValueError(f"Nonterminal {symbol} has no derivation.")
+        for _, derivation in self._derivations:
+            for symbol in derivation:
+                if is_nonterminal(symbol) and symbol not in self.nonterminals:
+                    raise ValueError(f"Nonterminal {symbol} has no derivation.")
 
     def _is_nullable(self, symbol: Symbol) -> bool:
         return is_nonterminal(symbol) and self.get_production(symbol).nullable
