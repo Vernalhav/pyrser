@@ -12,6 +12,9 @@ class FollowSet(MutableSet):
     end_chain_follows: bool = False
     terminals: set[Terminal] = field(default_factory=set, init=False)
 
+    def __repr__(self) -> str:
+        return self.terminals.__repr__()
+
     def __eq__(self, __o: object) -> bool:
         return self.terminals.__eq__(__o)
 
