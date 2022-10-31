@@ -9,7 +9,7 @@ def test_invalid_grammar_rejected() -> None:
     A_production = Production(A, [B])
 
     with pytest.raises(ValueError):
-        Grammar([A_production])
+        Grammar([A_production], A)
 
 
 def test_grammar_gets_production() -> None:
@@ -26,5 +26,5 @@ def test_grammar_gets_production() -> None:
     factor_production = Production(factor, [(term, mult, term), term])
     term_production = Production(term, [zero, one])
 
-    g = Grammar([expr_production, factor_production, term_production])
+    g = Grammar([expr_production, factor_production, term_production], expr)
     assert g.get_production(expr) == expr_production

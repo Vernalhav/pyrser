@@ -10,7 +10,7 @@ def test_follow_single_production() -> None:
     A_production = Production(A, [a])
     E_production = Production(E, [(A, b)])
 
-    g = Grammar([A_production, E_production])
+    g = Grammar([A_production, E_production], E)
     assert g.get_follow(A) == {b}
 
 
@@ -23,7 +23,7 @@ def test_follow_start_production() -> None:
     A_production = Production(A, [a])
     E_production = Production(E, [(A, a, A, b), b])
 
-    g = Grammar([A_production, E_production])
+    g = Grammar([A_production, E_production], E)
     assert g.get_follow(A) == {a, b}
 
 
@@ -39,7 +39,7 @@ def test_follow_of_last_nonterminal_adds_follow() -> None:
     B_production = Production(B, [c])
     E_production = Production(E, [(A, a, A, b), b])
 
-    g = Grammar([A_production, B_production, E_production])
+    g = Grammar([A_production, B_production, E_production], E)
     assert g.get_follow(B) == {a, b}
 
 
@@ -52,5 +52,5 @@ def test_follow_end_of_chain() -> None:
     A_production = Production(A, [a])
     E_production = Production(E, [(A, b)])
 
-    g = Grammar([A_production, E_production])
+    g = Grammar([A_production, E_production], E)
     assert g.get_follow(E).end_chain_follows

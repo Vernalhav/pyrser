@@ -14,11 +14,17 @@ class Grammar:
     symbols: FrozenSet[Symbol]
     terminals: FrozenSet[Terminal]
     nonterminals: FrozenSet[Nonterminal]
+    start_symbol: Nonterminal
 
-    def __init__(self, productions: Iterable[Production]) -> None:
+    def __init__(
+        self,
+        productions: Iterable[Production],
+        start_symbol: Nonterminal,
+    ) -> None:
 
         self.terminals, self.nonterminals = get_symbols(productions)
         self.symbols = self.terminals.union(self.nonterminals)
+        self.start_symbol = start_symbol
 
         self._productions = {
             production.nonterminal: production for production in productions
