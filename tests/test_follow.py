@@ -43,14 +43,14 @@ def test_follow_of_last_nonterminal_adds_follow() -> None:
     assert g.get_follow(B) == {a, b}
 
 
-# def test_follow_start_production() -> None:
-#     a = Terminal("a")
-#     b = Terminal("b")
-#     E = Nonterminal("E")
-#     A = Nonterminal("A")
+def test_follow_end_of_chain() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    E = Nonterminal("E")
+    A = Nonterminal("A")
 
-#     A_production = Production(A, [a])
-#     E_production = Production(E, [(A, b)])
+    A_production = Production(A, [a])
+    E_production = Production(E, [(A, b)])
 
-#     g = Grammar([A_production, E_production])
-#     assert g.get_follow(E).end_chain_follows
+    g = Grammar([A_production, E_production])
+    assert g.get_follow(E).end_chain_follows
