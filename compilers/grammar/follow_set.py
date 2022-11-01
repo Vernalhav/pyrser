@@ -16,6 +16,11 @@ class FollowSet(MutableSet):
         return self.terminals.__repr__()
 
     def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, FollowSet):
+            return (
+                self.terminals == __o.terminals
+                and self.end_chain_follows == __o.end_chain_follows
+            )
         return self.terminals.__eq__(__o)
 
     def __contains__(self, x: object) -> bool:

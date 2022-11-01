@@ -16,6 +16,8 @@ class FirstSet(MutableSet):
         return self.terminals.__repr__()
 
     def __eq__(self, __o: object) -> bool:
+        if isinstance(__o, FirstSet):
+            return self.terminals == __o.terminals and self.nullable == __o.nullable
         return self.terminals.__eq__(__o)
 
     def __contains__(self, x: object) -> bool:
