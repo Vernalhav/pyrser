@@ -7,7 +7,7 @@ from .productions import Derivation, Production
 from .symbols import Symbol, is_nonterminal, is_terminal
 from .terminals import Terminal
 
-END_OF_CHAIN = Terminal("$")
+END_OF_CHAIN = Terminal("$")    # TODO: Make END_OF_CHAIN not a reserved symbol
 
 
 class Grammar:
@@ -56,9 +56,9 @@ class Grammar:
     def _calculate_follow_sets(self) -> None:
         changed = True
         while changed:
-            changed = any(
-                self._update_follow(nonterminal) for nonterminal in self.nonterminals
-            )
+            changed = False
+            for nonterminal in self.nonterminals:
+                changed |= self._update_follow(nonterminal)
 
     def _update_follow(self, nonterminal: Nonterminal) -> bool:
         previous_follow_set = self._follow_sets[nonterminal]
