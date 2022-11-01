@@ -120,25 +120,10 @@ class Grammar:
 
         if is_nonterminal(symbol):
             for derivation in self.get_production(symbol).derivations:
-                is_nullable = self._process_first_derivation(first, derivation)
-                # If any derivation is nullable, `first` is
-                first.nullable |= is_nullable
+                derivation_first = self._get_first(derivation)
+                first.update(derivation_first)
 
         return first
-
-    def _process_first_derivation(
-        self, first: FirstSet, derivation: Derivation
-    ) -> bool:
-        """
-        Performs a pass of adding first symbols coming from
-        the given derivation to the set.
-        Returns whether or not the `derivation` is nullable.
-        """
-        for symbol in derivation:
-            first.update(self._first_sets[symbol])
-            if not self._is_nullable(symbol):
-                return False
-        return True
 
     def _validate_grammar(self) -> None:
         # TODO: "Find" start symbol
