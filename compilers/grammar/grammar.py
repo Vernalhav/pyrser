@@ -61,14 +61,16 @@ class Grammar:
             )
 
     def _update_follow(self, nonterminal: Nonterminal) -> bool:
+        previous_follow_set = self._follow_sets[nonterminal]
         updated_follow_set = self._get_follow_pass(nonterminal)
-        changed = len(updated_follow_set) != len(self._follow_sets[nonterminal])
-
         self._follow_sets[nonterminal] = updated_follow_set
-        return changed
+        return updated_follow_set != previous_follow_set
 
     def _get_follow_pass(self, nonterminal: Nonterminal) -> FollowSet:
         follow = FollowSet()
+
+        if nonterminal == self.start_symbol:
+            follow.end_chain_follows = True
 
         for production_nonterminal, derivation in self._derivations:
             for next_symbol in next_symbols(nonterminal, derivation):
@@ -84,16 +86,15 @@ class Grammar:
         while changed:
             changed = any(self._update_first(symbol) for symbol in self.symbols)
 
-    def _update_first(self, nonterminal: Symbol) -> bool:
+    def _update_first(self, symbol: Symbol) -> bool:
         """
-        Updates `nonterminal`'s first set with a single pass.
+        Updates `symbol`'s first set with a single pass.
         Returns whether new symbols were added.
         """
-        updated_first_set = self._get_first_pass(nonterminal)
-        changed = len(updated_first_set) != len(self._first_sets[nonterminal])
-
-        self._first_sets[nonterminal] = updated_first_set
-        return changed
+        previous_first_set = self._first_sets[symbol]
+        updated_first_set = self._get_first_pass(symbol)
+        self._first_sets[symbol] = updated_first_set
+        return updated_first_set != previous_first_set
 
     def _get_first_pass(self, symbol: Symbol) -> FirstSet:
         """
@@ -127,6 +128,7 @@ class Grammar:
 
     def _validate_grammar(self) -> None:
         # TODO: "Find" start symbol
+        # TODO: Check no reserved symbols used
         # TODO: Ensure only one start symbol
         # TODO: Disallow same nonterminal in multiple productions
         for _, derivation in self._derivations:
