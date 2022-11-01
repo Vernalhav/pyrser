@@ -46,10 +46,10 @@ def test_first_multiple_nonterminal_derivations() -> None:
     B = Nonterminal("B")
     C = Nonterminal("C")
 
-    A_produciion = Production(A, [a])
-    B_produciion = Production(B, [b])
+    A_production = Production(A, [a])
+    B_production = Production(B, [b])
     C_production = Production(C, [A, B])
-    g = Grammar([A_produciion, B_produciion, C_production], C)
+    g = Grammar([A_production, B_production, C_production], C)
 
     assert g.get_first(C) == {a, b}
 
