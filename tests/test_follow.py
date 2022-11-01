@@ -54,3 +54,16 @@ def test_follow_end_of_chain() -> None:
 
     g = Grammar([A_production, E_production], E)
     assert g.get_follow(E).end_chain_follows
+
+
+def test_follow_indirect_end_of_chain() -> None:
+    a = Terminal("a")
+    b = Terminal("b")
+    E = Nonterminal("E")
+    A = Nonterminal("A")
+
+    A_production = Production(A, [a])
+    E_production = Production(E, [(b, A)])
+
+    g = Grammar([A_production, E_production], E)
+    assert g.get_follow(A).end_chain_follows
