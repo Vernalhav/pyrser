@@ -39,4 +39,7 @@ class FollowSet(MutableSet):
         return self.terminals.discard(value)
 
     def update(self, *s: Iterable[Terminal]) -> None:
-        return self.terminals.update(*s)
+        for iterable in s:
+            if isinstance(iterable, FollowSet):
+                self.end_chain_follows |= iterable.end_chain_follows
+            self.terminals.update(iterable)
