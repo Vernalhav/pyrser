@@ -36,4 +36,7 @@ class FirstSet(MutableSet):
         return self.terminals.discard(value)
 
     def update(self, *s: Iterable[Terminal]) -> None:
-        return self.terminals.update(*s)
+        for iterable in s:
+            if isinstance(iterable, FirstSet):
+                self.nullable |= iterable.nullable
+            self.terminals.update(iterable)

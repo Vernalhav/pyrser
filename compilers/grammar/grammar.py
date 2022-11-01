@@ -161,7 +161,8 @@ class Grammar:
 
         first = FirstSet()
         for symbol in derivation:
-            first.update(self._first_sets[symbol])
+            # Only update with the terminal symbols, don't propagate nullable
+            first.update(self._first_sets[symbol].terminals)
             if not self._is_nullable(symbol):
                 break
         else:  # If for-loop exits without breaking
@@ -187,4 +188,5 @@ def get_symbols(
 def next_symbols(symbol: Symbol, derivation: Derivation) -> Iterator[Derivation]:
     for i, _ in enumerate(derivation):
         if symbol == derivation[i]:
-            yield derivation[i + 1:]
+            # If symbol appears last in the derivation, return empty tuple
+            yield derivation[i + 1 :]
