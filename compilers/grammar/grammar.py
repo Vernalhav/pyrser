@@ -7,8 +7,6 @@ from .productions import Derivation, Production
 from .symbols import Symbol, is_nonterminal, is_terminal
 from .terminals import Terminal
 
-END_OF_CHAIN = Terminal("$")    # TODO: Make END_OF_CHAIN not a reserved symbol
-
 
 class Grammar:
     symbols: FrozenSet[Symbol]
@@ -73,13 +71,27 @@ class Grammar:
             follow.end_chain_follows = True
 
         for production_nonterminal, derivation in self._derivations:
-            for next_symbol in next_symbols(nonterminal, derivation):
-                if next_symbol != END_OF_CHAIN:
-                    follow.update(self._first_sets[next_symbol])
-                else:
-                    follow.update(self._follow_sets[production_nonterminal])
+            self._process_follow_derivation(
+                nonterminal, follow, production_nonterminal, derivation
+            )
 
         return follow
+
+    def _process_follow_derivation(
+        self,
+        nonterminal: Nonterminal,
+        follow: FollowSet,
+        production_nonterminal: Nonterminal,
+        derivation: Derivation,
+    ) -> None:
+        if nonterminal not in derivation:
+            return
+
+        for derivation_suffix in next_symbols(nonterminal, derivation):
+            suffix_first = self._get_first(derivation_suffix)
+            follow.update(suffix_first)
+            if suffix_first.nullable:
+                follow.update(self._follow_sets[production_nonterminal])
 
     def _calculate_first_sets(self) -> None:
         changed = True
@@ -108,13 +120,15 @@ class Grammar:
 
         if is_nonterminal(symbol):
             for derivation in self.get_production(symbol).derivations:
-                is_nullable = self._process_derivation(first, derivation)
+                is_nullable = self._process_first_derivation(first, derivation)
                 # If any derivation is nullable, `first` is
                 first.nullable |= is_nullable
 
         return first
 
-    def _process_derivation(self, first: FirstSet, derivation: Derivation) -> bool:
+    def _process_first_derivation(
+        self, first: FirstSet, derivation: Derivation
+    ) -> bool:
         """
         Performs a pass of adding first symbols coming from
         the given derivation to the set.
@@ -137,7 +151,23 @@ class Grammar:
                     raise ValueError(f"Nonterminal {symbol} has no derivation.")
 
     def _is_nullable(self, symbol: Symbol) -> bool:
-        return is_nonterminal(symbol) and self.get_production(symbol).nullable
+        return self._first_sets[symbol].nullable or (
+            is_nonterminal(symbol) and self.get_production(symbol).nullable
+        )
+
+    def _get_first(self, derivation: Derivation | Symbol) -> FirstSet:
+        if not isinstance(derivation, Iterable):
+            return self._first_sets[derivation]
+
+        first = FirstSet()
+        for symbol in derivation:
+            first.update(self._first_sets[symbol])
+            if not self._is_nullable(symbol):
+                break
+        else:  # If for-loop exits without breaking
+            first.nullable = True
+
+        return first
 
 
 def get_symbols(
@@ -154,9 +184,7 @@ def get_symbols(
     return terminals, nonterminals
 
 
-def next_symbols(symbol: Symbol, derivation: Derivation) -> Iterator[Symbol]:
-    if len(derivation) == 0:
-        return
-    for i, current_symbol in enumerate(derivation[1:] + (END_OF_CHAIN,), 1):
-        if symbol == derivation[i - 1]:
-            yield current_symbol
+def next_symbols(symbol: Symbol, derivation: Derivation) -> Iterator[Derivation]:
+    for i, _ in enumerate(derivation):
+        if symbol == derivation[i]:
+            yield derivation[i + 1:]
