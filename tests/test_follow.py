@@ -55,7 +55,7 @@ def test_follow_start_symbol_end_of_chain() -> None:
     E_production = Production(E, [(A, b)])
 
     g = Grammar([A_production, E_production], E)
-    assert g.get_follow(E).end_chain_follows
+    assert g.get_follow(E).ends_chain
 
 
 def test_follow_not_start_symbol_end_of_chain() -> None:
@@ -68,7 +68,7 @@ def test_follow_not_start_symbol_end_of_chain() -> None:
     E_production = Production(E, [(b, A)])
 
     g = Grammar([A_production, E_production], E)
-    assert g.get_follow(A).end_chain_follows
+    assert g.get_follow(A).ends_chain
 
 
 def test_follow_indirect_end_of_chain() -> None:
@@ -83,7 +83,7 @@ def test_follow_indirect_end_of_chain() -> None:
     E_production = Production(E, [(b, A, B)])
 
     g = Grammar([A_production, B_production, E_production], E)
-    assert g.get_follow(A).end_chain_follows
+    assert g.get_follow(A).ends_chain
 
 
 def test_larger_grammar() -> None:
@@ -108,25 +108,14 @@ def test_larger_grammar() -> None:
         [E_production, Ep_production, T_production, Tp_production, F_production], E
     )
 
-    assert (
-        g.get_first(E)
-        == g.get_first(T)
-        == g.get_first(F)
-        == FirstSet({open_paren, id}, nullable=False)
-    )
+    assert g.get_first(E) == FirstSet({open_paren, id}, nullable=False)
+    assert g.get_first(T) == FirstSet({open_paren, id}, nullable=False)
+    assert g.get_first(F) == FirstSet({open_paren, id}, nullable=False)
     assert g.get_first(Ep) == FirstSet({plus}, nullable=True)
     assert g.get_first(Tp) == FirstSet({mult}, nullable=True)
 
-    assert (
-        g.get_follow(E)
-        == g.get_follow(Ep)
-        == FollowSet({close_paren}, end_chain_follows=True)
-    )
-    assert (
-        g.get_follow(T)
-        == g.get_follow(Tp)
-        == FollowSet({plus, close_paren}, end_chain_follows=True)
-    )
-    assert g.get_follow(F) == FollowSet(
-        {plus, mult, close_paren}, end_chain_follows=True
-    )
+    assert g.get_follow(E) == FollowSet({close_paren}, ends_chain=True)
+    assert g.get_follow(Ep) == FollowSet({close_paren}, ends_chain=True)
+    assert g.get_follow(T) == FollowSet({plus, close_paren}, ends_chain=True)
+    assert g.get_follow(Tp) == FollowSet({plus, close_paren}, ends_chain=True)
+    assert g.get_follow(F) == FollowSet({plus, mult, close_paren}, ends_chain=True)

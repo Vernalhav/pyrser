@@ -68,7 +68,7 @@ class Grammar:
         follow = FollowSet()
 
         if nonterminal == self.start_symbol:
-            follow.end_chain_follows = True
+            follow.ends_chain = True
 
         for production_nonterminal, derivation in self._derivations:
             self._process_follow_derivation(
