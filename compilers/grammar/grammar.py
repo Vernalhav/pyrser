@@ -88,15 +88,17 @@ class Grammar:
             return
 
         for derivation_suffix in next_symbols(nonterminal, derivation):
-            suffix_first = self._get_first(derivation_suffix)
-            follow.update(suffix_first)
-            if suffix_first.nullable:
+            derivation_suffix_first = self._get_first(derivation_suffix)
+            follow.update(derivation_suffix_first)
+            if derivation_suffix_first.nullable:
                 follow.update(self._follow_sets[production_nonterminal])
 
     def _calculate_first_sets(self) -> None:
         changed = True
         while changed:
-            changed = any(self._update_first(symbol) for symbol in self.symbols)
+            changed = False
+            for symbol in self.symbols:
+                changed |= self._update_first(symbol)
 
     def _update_first(self, symbol: Symbol) -> bool:
         """
@@ -126,7 +128,6 @@ class Grammar:
         return first
 
     def _validate_grammar(self) -> None:
-        # TODO: "Find" start symbol
         # TODO: Check no reserved symbols used
         # TODO: Ensure only one start symbol
         # TODO: Disallow same nonterminal in multiple productions
