@@ -9,8 +9,8 @@ from .terminals import Terminal
 
 @dataclass
 class FollowSet(MutableSet):
+    terminals: set[Terminal] = field(default_factory=set)
     end_chain_follows: bool = False
-    terminals: set[Terminal] = field(default_factory=set, init=False)
 
     def __repr__(self) -> str:
         return self.terminals.__repr__()
