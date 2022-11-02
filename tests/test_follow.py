@@ -1,4 +1,6 @@
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
+from compilers.grammar.first_set import FirstSet
+from compilers.grammar.follow_set import FollowSet
 
 
 def test_follow_single_production() -> None:
@@ -82,3 +84,49 @@ def test_follow_indirect_end_of_chain() -> None:
 
     g = Grammar([A_production, B_production, E_production], E)
     assert g.get_follow(A).end_chain_follows
+
+
+def test_larger_grammar() -> None:
+    E = Nonterminal("E")
+    Ep = Nonterminal("E'")
+    T = Nonterminal("T")
+    Tp = Nonterminal("T'")
+    F = Nonterminal("F")
+    id = Terminal("id")
+    open_paren = Terminal("(")
+    close_paren = Terminal(")")
+    plus = Terminal("+")
+    mult = Terminal("*")
+
+    E_production = Production(E, [(T, Ep)])
+    Ep_production = Production(Ep, [(plus, T, Ep), ()])
+    T_production = Production(T, [(F, Tp)])
+    Tp_production = Production(Tp, [(mult, F, Tp), ()])
+    F_production = Production(F, [(open_paren, E, close_paren), id])
+
+    g = Grammar(
+        [E_production, Ep_production, T_production, Tp_production, F_production], E
+    )
+
+    assert (
+        g.get_first(E)
+        == g.get_first(T)
+        == g.get_first(F)
+        == FirstSet({open_paren, id}, nullable=False)
+    )
+    assert g.get_first(Ep) == FirstSet({plus}, nullable=True)
+    assert g.get_first(Tp) == FirstSet({mult}, nullable=True)
+
+    assert (
+        g.get_follow(E)
+        == g.get_follow(Ep)
+        == FollowSet({close_paren}, end_chain_follows=True)
+    )
+    assert (
+        g.get_follow(T)
+        == g.get_follow(Tp)
+        == FollowSet({plus, close_paren}, end_chain_follows=True)
+    )
+    assert g.get_follow(F) == FollowSet(
+        {plus, mult, close_paren}, end_chain_follows=True
+    )
