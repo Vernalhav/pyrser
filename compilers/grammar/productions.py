@@ -22,3 +22,15 @@ class Production:
             for derivation in derivations
         )
         self.nullable = any(len(derivation) == 0 for derivation in self.derivations)
+
+    def __repr__(self) -> str:
+        def format_derivation(derivation: Derivation) -> str:
+            if len(derivation) == 0:
+                return "#"
+            return "".join(repr(symbol) for symbol in derivation)
+
+        derivations = " | ".join(
+            format_derivation(derivation) for derivation in self.derivations
+        )
+        output = f"{self.nonterminal} -> {derivations}"
+        return output
