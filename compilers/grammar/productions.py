@@ -1,4 +1,5 @@
-from typing import Iterable
+from collections.abc import Iterable, Sequence
+from typing import NamedTuple
 
 from .nonterminals import Nonterminal
 from .symbols import Symbol
@@ -6,10 +7,16 @@ from .symbols import Symbol
 Derivation = tuple[Symbol, ...]
 
 
+class ProductionLine(NamedTuple):
+    nonterminal: Nonterminal
+    derivation: Derivation
+
+
+# TODO: Make class frozen and add value semantics?
 class Production:
     nonterminal: Nonterminal
-    derivations: set[Derivation]
     nullable: bool
+    derivations: Sequence[ProductionLine]
 
     def __init__(
         self,
@@ -17,11 +24,15 @@ class Production:
         derivations: Iterable[Derivation | Symbol],
     ) -> None:
         self.nonterminal = nonterminal
-        self.derivations = set(
+        tuple_derivations = set(
             derivation if isinstance(derivation, tuple) else (derivation,)
             for derivation in derivations
         )
-        self.nullable = any(len(derivation) == 0 for derivation in self.derivations)
+        self.derivations = tuple(
+            ProductionLine(self.nonterminal, derivation)
+            for derivation in tuple_derivations
+        )
+        self.nullable = any(len(derivation) == 0 for _, derivation in self.derivations)
 
     def __repr__(self) -> str:
         def format_derivation(derivation: Derivation) -> str:
@@ -30,7 +41,7 @@ class Production:
             return "".join(repr(symbol) for symbol in derivation)
 
         derivations = " | ".join(
-            format_derivation(derivation) for derivation in self.derivations
+            format_derivation(derivation) for _, derivation in self.derivations
         )
         output = f"{self.nonterminal} -> {derivations}"
         return output

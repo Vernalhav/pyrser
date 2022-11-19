@@ -48,8 +48,8 @@ class Grammar:
     @property
     def _derivations(self) -> Iterable[tuple[Nonterminal, Derivation]]:
         for production in self._productions.values():
-            for derivation in production.derivations:
-                yield production.nonterminal, derivation
+            for nonterminal, derivation in production.derivations:
+                yield nonterminal, derivation
 
     def _calculate_follow_sets(self) -> None:
         changed = True
@@ -121,7 +121,7 @@ class Grammar:
             first.add(symbol)
 
         if is_nonterminal(symbol):
-            for derivation in self.get_production(symbol).derivations:
+            for _, derivation in self.get_production(symbol).derivations:
                 derivation_first = self._get_first(derivation)
                 first.update(derivation_first)
 
@@ -163,7 +163,7 @@ def get_symbols(
     terminals = frozenset(
         symbol
         for production in productions
-        for derivation in production.derivations
+        for _, derivation in production.derivations
         for symbol in derivation
         if is_terminal(symbol)
     )
