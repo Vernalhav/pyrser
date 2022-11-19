@@ -4,12 +4,12 @@ from typing import NamedTuple
 from .nonterminals import Nonterminal
 from .symbols import Symbol
 
-Derivation = tuple[Symbol, ...]
+Chain = tuple[Symbol, ...]
 
 
 class ProductionLine(NamedTuple):
     nonterminal: Nonterminal
-    derivation: Derivation
+    derivation: Chain
 
 
 # TODO: Make class frozen and add value semantics?
@@ -21,7 +21,7 @@ class Production:
     def __init__(
         self,
         nonterminal: Nonterminal,
-        derivations: Iterable[Derivation | Symbol],
+        derivations: Iterable[Chain | Symbol],
     ) -> None:
         self.nonterminal = nonterminal
         tuple_derivations = set(
@@ -35,7 +35,7 @@ class Production:
         self.nullable = any(len(derivation) == 0 for _, derivation in self.derivations)
 
     def __repr__(self) -> str:
-        def format_derivation(derivation: Derivation) -> str:
+        def format_derivation(derivation: Chain) -> str:
             if len(derivation) == 0:
                 return "#"
             return "".join(repr(symbol) for symbol in derivation)

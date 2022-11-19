@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import TypeVar
 
 from compilers.grammar import Terminal
-from compilers.grammar.productions import Derivation, ProductionLine
+from compilers.grammar.productions import Chain, ProductionLine
 from compilers.grammar.symbols import Symbol
 
 Self = TypeVar("Self", bound="LRItem")  # TODO: Remove once mypy supports Self
@@ -24,7 +24,7 @@ class LRItem:
         return next_symbols[0] if len(next_symbols) > 0 else None
 
     @property
-    def tail(self) -> Derivation:
+    def tail(self) -> Chain:
         return self.production.derivation[self._stack_position :]
 
     def next(self: Self) -> Self:
