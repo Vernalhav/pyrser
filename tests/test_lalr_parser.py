@@ -15,7 +15,7 @@ def test_parser_augments_grammar() -> None:
     assert len(parser.grammar.nonterminals) == 2
 
 
-def test_follow_terminal_item_closure() -> None:
+def test_follow_terminal_implied_items() -> None:
     A = Nonterminal("A")
     a = Terminal("a")
 
@@ -30,7 +30,7 @@ def test_follow_terminal_item_closure() -> None:
     assert parser.get_implied_items(item) == set()
 
 
-def test_follow_nonterminal_item_closure() -> None:
+def test_follow_nonterminal_implied_items() -> None:
     S = Nonterminal("S")
     A = Nonterminal("A")
     a = Terminal("a")
@@ -48,3 +48,26 @@ def test_follow_nonterminal_item_closure() -> None:
     assert parser.get_implied_items(item) == {
         LR1Item(production=a_line, lookahead=END_OF_CHAIN),
     }
+
+
+def test_closure() -> None:
+    ParenList = Nonterminal("ParenList")
+    Pair = Nonterminal("Pair")
+    open_paren = Terminal("(")
+    close_paren = Terminal(")")
+
+    paren_list_production = Production(ParenList, [(ParenList, Pair), Pair])
+    pair_production = Production(
+        Pair, [(open_paren, Pair, close_paren), (open_paren, close_paren)]
+    )
+
+    g = Grammar([paren_list_production, pair_production], ParenList)
+    parser = LALRParser(g)
+
+    goal = parser.grammar.start_symbol
+    item = LR1Item(
+        production=ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN
+    )
+
+    core = parser.get_closure(frozenset({item}))
+    assert len(core) == 9

@@ -14,6 +14,16 @@ class LALRParser:
     def __init__(self, grammar: Grammar) -> None:
         self.grammar = augment_grammar(grammar)
 
+    def get_closure(self, items: frozenset[LR1Item]) -> frozenset[LR1Item]:
+        previous_items: frozenset[LR1Item] = frozenset()
+
+        while previous_items != items:
+            previous_items = items.copy()
+            for item in previous_items:
+                items |= self.get_implied_items(item)
+
+        return items
+
     def get_implied_items(self, item: LR1Item) -> frozenset[LR1Item]:
         implied_items: set[LR1Item] = set()
 

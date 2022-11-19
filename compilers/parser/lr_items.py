@@ -38,3 +38,10 @@ class LRItem:
 @dataclass(frozen=True, kw_only=True)
 class LR1Item(LRItem):
     lookahead: Terminal
+
+    def __repr__(self) -> str:
+        head = "".join(
+            str(symbol) for symbol in self.production.derivation[: self._stack_position]
+        )
+        tail = "".join(str(symbol) for symbol in self.tail)
+        return f"[{self.production.nonterminal} -> {head} ⋅ {tail} , {self.lookahead}]"
