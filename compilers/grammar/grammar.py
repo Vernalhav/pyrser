@@ -46,6 +46,10 @@ class Grammar:
         return self._follow_sets[nonterminal]
 
     @property
+    def productions(self) -> Iterable[Production]:
+        return self._productions.values()
+
+    @property
     def _derivations(self) -> Iterable[tuple[Nonterminal, Derivation]]:
         for production in self._productions.values():
             for nonterminal, derivation in production.derivations:

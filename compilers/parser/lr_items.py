@@ -6,6 +6,7 @@ from compilers.grammar.productions import ProductionLine
 from compilers.grammar.terminals import Terminal
 
 Self = TypeVar("Self", bound="LRItem")  # TODO: Remove once mypy supports Self
+END_OF_CHAIN = Terminal("$")
 
 
 @dataclass(frozen=True, kw_only=True)
