@@ -10,8 +10,12 @@ class LRItem:
     production: ProductionLine
     _stack_position: int = 0
 
+    @property
+    def can_reduce(self) -> bool:
+        return self._stack_position == len(self.production.derivation)
+
     def next(self) -> LRItem:
-        if self._stack_position == len(self.production.derivation):
+        if self.can_reduce:
             raise ValueError(
                 "Cannot advance an LR Item that is at the end of the production"
             )
