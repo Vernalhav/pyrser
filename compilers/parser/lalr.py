@@ -1,5 +1,11 @@
+from typing import Iterable
+
 from compilers.grammar import Grammar, Nonterminal, Production
+from compilers.grammar.symbols import is_nonterminal
+from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_items import LR1Item
+
+END_OF_CHAIN = Terminal("$")
 
 
 class LALRParser:
@@ -8,8 +14,24 @@ class LALRParser:
     def __init__(self, grammar: Grammar) -> None:
         self.grammar = augment_grammar(grammar)
 
-    def item_closure(self, item: LR1Item) -> frozenset[LR1Item]:
-        return frozenset()
+    def get_implied_items(self, item: LR1Item) -> frozenset[LR1Item]:
+        implied_items: set[LR1Item] = set()
+
+        next_symbol = item.next_symbol
+        if next_symbol is not None and is_nonterminal(next_symbol):
+            for production_line in self.grammar.get_production(next_symbol).derivations:
+                for lookahead in self._get_implied_lookaheads(item):
+                    implied_items.add(
+                        LR1Item(production=production_line, lookahead=lookahead)
+                    )
+
+        return frozenset(implied_items)
+
+    def _get_implied_lookaheads(self, item: LR1Item) -> Iterable[Terminal]:
+        lookaheads = self.grammar.get_first(item.next().tail)
+        if lookaheads.nullable:
+            lookaheads.add(item.lookahead)
+        return lookaheads.terminals
 
 
 def augment_grammar(grammar: Grammar) -> Grammar:
