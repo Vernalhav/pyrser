@@ -4,6 +4,17 @@ from compilers.parser.lalr import END_OF_CHAIN, LALRParser
 from compilers.parser.lr_items import LR1Item
 
 
+def test_parser_augments_grammar() -> None:
+    A = Nonterminal("A")
+    a = Terminal("a")
+
+    A_production = Production(A, [a])
+    g = Grammar([A_production], A)
+
+    parser = LALRParser(g)
+    assert len(parser.grammar.nonterminals) == 2
+
+
 def test_follow_terminal_item_closure() -> None:
     A = Nonterminal("A")
     a = Terminal("a")
