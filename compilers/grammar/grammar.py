@@ -39,8 +39,10 @@ class Grammar:
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self._productions[nonterminal]
 
-    def get_first(self, nonterminal: Nonterminal) -> FirstSet:
-        return self._first_sets[nonterminal]
+    def get_first(self, derivation: Nonterminal | Derivation) -> FirstSet:
+        if isinstance(derivation, Iterable):
+            return self._get_first_from_derivation(derivation)
+        return self._first_sets[derivation]
 
     def get_follow(self, nonterminal: Nonterminal) -> FollowSet:
         return self._follow_sets[nonterminal]
@@ -92,7 +94,7 @@ class Grammar:
             return
 
         for derivation_suffix in next_symbols(nonterminal, derivation):
-            derivation_suffix_first = self._get_first(derivation_suffix)
+            derivation_suffix_first = self._get_first_from_derivation(derivation_suffix)
             follow.update(derivation_suffix_first)
             if derivation_suffix_first.nullable:
                 follow.update(self._follow_sets[production_nonterminal])
@@ -126,7 +128,7 @@ class Grammar:
 
         if is_nonterminal(symbol):
             for _, derivation in self.get_production(symbol).derivations:
-                derivation_first = self._get_first(derivation)
+                derivation_first = self._get_first_from_derivation(derivation)
                 first.update(derivation_first)
 
         return first
@@ -145,10 +147,7 @@ class Grammar:
             is_nonterminal(symbol) and self.get_production(symbol).nullable
         )
 
-    def _get_first(self, derivation: Derivation | Symbol) -> FirstSet:
-        if not isinstance(derivation, Iterable):
-            return self._first_sets[derivation]
-
+    def _get_first_from_derivation(self, derivation: Derivation) -> FirstSet:
         first = FirstSet()
         for symbol in derivation:
             # Only update with the terminal symbols, don't propagate nullable
