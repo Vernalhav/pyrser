@@ -1,8 +1,7 @@
 from typing import Iterable
 
-from compilers.grammar import Grammar, Nonterminal, Production
-from compilers.grammar.symbols import is_nonterminal
-from compilers.grammar.terminals import Terminal
+from compilers.grammar import Grammar, Nonterminal, Production, Terminal
+from compilers.grammar.symbols import Symbol, is_nonterminal
 from compilers.parser.lr_items import LR1Item
 
 END_OF_CHAIN = Terminal("$")
@@ -23,6 +22,15 @@ class LALRParser:
                 items |= self.get_implied_items(item)
 
         return items
+
+    def get_goto(self, items: frozenset[LR1Item], symbol: Symbol) -> frozenset[LR1Item]:
+        moved_items: set[LR1Item] = set()
+
+        for item in items:
+            if not item.complete and item.next_symbol == symbol:
+                moved_items.add(item.next())
+
+        return self.get_closure(frozenset(moved_items))
 
     def get_implied_items(self, item: LR1Item) -> frozenset[LR1Item]:
         if item.complete:
