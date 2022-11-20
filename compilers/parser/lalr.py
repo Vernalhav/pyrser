@@ -6,6 +6,7 @@ from compilers.parser.lr_items import LR1Item
 
 END_OF_CHAIN = Terminal("$")
 
+LR1State = frozenset[LR1Item]
 
 class LALRParser:
     grammar: Grammar
@@ -13,7 +14,7 @@ class LALRParser:
     def __init__(self, grammar: Grammar) -> None:
         self.grammar = augment_grammar(grammar)
 
-    def get_closure(self, items: AbstractSet[LR1Item]) -> frozenset[LR1Item]:
+    def get_closure(self, items: AbstractSet[LR1Item]) -> LR1State:
         previous_items: frozenset[LR1Item] = frozenset()
 
         while previous_items != items:
@@ -25,7 +26,7 @@ class LALRParser:
 
     def get_state_for_transition(
         self, items: AbstractSet[LR1Item], symbol: Symbol
-    ) -> frozenset[LR1Item]:
+    ) -> LR1State:
         transition_state: set[LR1Item] = set()
 
         for item in items:
@@ -34,9 +35,9 @@ class LALRParser:
 
         return self.get_closure(transition_state)
 
-    def get_implied_items(self, item: LR1Item) -> frozenset[LR1Item]:
+    def get_implied_items(self, item: LR1Item) -> AbstractSet[LR1Item]:
         if item.complete:
-            return frozenset()
+            return set()
 
         implied_items: set[LR1Item] = set()
 
@@ -48,7 +49,7 @@ class LALRParser:
                         LR1Item(production=production_line, lookahead=lookahead)
                     )
 
-        return frozenset(implied_items)
+        return implied_items
 
     def _get_implied_lookaheads(self, item: LR1Item) -> Iterable[Terminal]:
         lookaheads = self.grammar.get_first(item.next().tail)
