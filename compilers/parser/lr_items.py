@@ -19,9 +19,10 @@ class LRItem:
         return self._stack_position == len(self.production.derivation)
 
     @property
-    def next_symbol(self) -> Symbol | None:
-        next_symbols = self.tail
-        return next_symbols[0] if len(next_symbols) > 0 else None
+    def next_symbol(self) -> Symbol:
+        if self.complete:
+            raise ValueError("Complete item {self} has no next symbol.")
+        return self.tail[0]
 
     @property
     def tail(self) -> Chain:

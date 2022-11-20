@@ -25,10 +25,13 @@ class LALRParser:
         return items
 
     def get_implied_items(self, item: LR1Item) -> frozenset[LR1Item]:
+        if item.complete:
+            return frozenset()
+
         implied_items: set[LR1Item] = set()
 
         next_symbol = item.next_symbol
-        if next_symbol is not None and is_nonterminal(next_symbol):
+        if is_nonterminal(next_symbol):
             for production_line in self.grammar.get_production(next_symbol).derivations:
                 for lookahead in self._get_implied_lookaheads(item):
                     implied_items.add(
