@@ -69,7 +69,7 @@ def test_closure() -> None:
         production=ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN
     )
 
-    core = parser.get_closure(frozenset({item}))
+    core = parser.get_closure({item})
     assert len(core) == 9
 
 
@@ -87,7 +87,7 @@ def test_goto_adds_advanced_item() -> None:
     s_line = ProductionLine(S, (A,))
     item = LR1Item(production=s_line, lookahead=END_OF_CHAIN)
 
-    assert parser.get_goto(frozenset({item}), A) == {
+    assert parser.get_state_for_transition({item}, A) == {
         LR1Item(production=s_line, _stack_position=1, lookahead=END_OF_CHAIN),
     }
 
@@ -107,7 +107,7 @@ def test_goto_adds_implied_items() -> None:
     item = LR1Item(production=s_line, lookahead=END_OF_CHAIN)
 
     a_line = ProductionLine(A, (a,))
-    assert parser.get_goto(frozenset({item}), A) == {
+    assert parser.get_state_for_transition({item}, A) == {
         LR1Item(production=s_line, _stack_position=1, lookahead=END_OF_CHAIN),
         LR1Item(production=a_line, lookahead=END_OF_CHAIN),
     }
@@ -132,5 +132,5 @@ def test_goto() -> None:
         production=ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN
     )
 
-    core = parser.get_closure(frozenset({item}))
-    assert len(parser.get_goto(core, open_paren)) == 6
+    core = parser.get_closure({item})
+    assert len(parser.get_state_for_transition(core, open_paren)) == 6

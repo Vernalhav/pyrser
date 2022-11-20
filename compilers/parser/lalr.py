@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import AbstractSet, Iterable
 
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 from compilers.grammar.symbols import Symbol, is_nonterminal
@@ -13,24 +13,26 @@ class LALRParser:
     def __init__(self, grammar: Grammar) -> None:
         self.grammar = augment_grammar(grammar)
 
-    def get_closure(self, items: frozenset[LR1Item]) -> frozenset[LR1Item]:
+    def get_closure(self, items: AbstractSet[LR1Item]) -> frozenset[LR1Item]:
         previous_items: frozenset[LR1Item] = frozenset()
 
         while previous_items != items:
-            previous_items = items.copy()
+            previous_items = frozenset(items)
             for item in previous_items:
                 items |= self.get_implied_items(item)
 
-        return items
+        return previous_items
 
-    def get_goto(self, items: frozenset[LR1Item], symbol: Symbol) -> frozenset[LR1Item]:
-        moved_items: set[LR1Item] = set()
+    def get_state_for_transition(
+        self, items: AbstractSet[LR1Item], symbol: Symbol
+    ) -> frozenset[LR1Item]:
+        transition_state: set[LR1Item] = set()
 
         for item in items:
             if not item.complete and item.next_symbol == symbol:
-                moved_items.add(item.next())
+                transition_state.add(item.next())
 
-        return self.get_closure(frozenset(moved_items))
+        return self.get_closure(transition_state)
 
     def get_implied_items(self, item: LR1Item) -> frozenset[LR1Item]:
         if item.complete:
