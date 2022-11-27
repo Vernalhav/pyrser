@@ -1,6 +1,11 @@
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 from compilers.grammar.productions import ProductionLine
-from compilers.parser.lalr import END_OF_CHAIN, LALRParser, get_transition_symbols
+from compilers.parser.lalr import (
+    END_OF_CHAIN,
+    LALRParser,
+    can_merge,
+    get_transition_symbols,
+)
 from compilers.parser.lr_items import LR1Item, LRItem
 
 
@@ -152,3 +157,63 @@ def test_get_transition_symbols() -> None:
     )
 
     assert get_transition_symbols(lr_state) == {Pair, close_paren}
+
+
+def test_can_merge_lr1_states() -> None:
+    ParenList = Nonterminal("ParenList")
+    Pair = Nonterminal("Pair")
+    open_paren = Terminal("(")
+    close_paren = Terminal(")")
+
+    paren_list_production_1 = ProductionLine(ParenList, (ParenList, Pair))
+    paren_list_production_2 = ProductionLine(ParenList, (Pair,))
+
+    pair_production_1 = ProductionLine(Pair, (open_paren, Pair, close_paren))
+
+    lalr_state1 = frozenset(
+        {
+            LR1Item(paren_list_production_1, 2, lookahead=END_OF_CHAIN),
+            LR1Item(paren_list_production_1, 2, lookahead=open_paren),
+            LR1Item(paren_list_production_2, 0, lookahead=close_paren),
+            LR1Item(pair_production_1, 2, lookahead=open_paren),
+        }
+    )
+
+    lalr_state2 = frozenset(
+        {
+            LR1Item(paren_list_production_1, 2, lookahead=open_paren),
+            LR1Item(paren_list_production_2, 0, lookahead=close_paren),
+            LR1Item(pair_production_1, 2, lookahead=END_OF_CHAIN),
+        }
+    )
+
+    assert can_merge(lalr_state1, lalr_state2)
+
+
+def test_cannot_merge_lr1_states() -> None:
+    ParenList = Nonterminal("ParenList")
+    Pair = Nonterminal("Pair")
+    open_paren = Terminal("(")
+    close_paren = Terminal(")")
+
+    paren_list_production_1 = ProductionLine(ParenList, (ParenList, Pair))
+    paren_list_production_2 = ProductionLine(ParenList, (Pair,))
+
+    pair_production_1 = ProductionLine(Pair, (open_paren, Pair, close_paren))
+
+    lalr_state1 = frozenset(
+        {
+            LR1Item(paren_list_production_1, 2, lookahead=END_OF_CHAIN),
+            LR1Item(paren_list_production_2, 0, lookahead=close_paren),
+            LR1Item(pair_production_1, 2, lookahead=open_paren),
+        }
+    )
+
+    lalr_state2 = frozenset(
+        {
+            LR1Item(paren_list_production_2, 0, lookahead=close_paren),
+            LR1Item(pair_production_1, 2, lookahead=END_OF_CHAIN),
+        }
+    )
+
+    assert can_merge(lalr_state1, lalr_state2) is False

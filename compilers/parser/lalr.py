@@ -69,3 +69,7 @@ def augment_grammar(grammar: Grammar) -> Grammar:
 
 def get_transition_symbols(state: LRState) -> AbstractSet[Symbol]:
     return {item.next_symbol for item in state if not item.complete}
+
+
+def can_merge(state_a: LR1State, state_b: LR1State) -> bool:
+    return {item.to_lr() for item in state_a} == {item.to_lr() for item in state_b}

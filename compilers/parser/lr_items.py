@@ -40,6 +40,9 @@ class LRItem:
 class LR1Item(LRItem):
     lookahead: Terminal
 
+    def to_lr(self) -> LRItem:
+        return LRItem(self.production, self.stack_position)
+
     def __repr__(self) -> str:
         head = "".join(
             str(symbol) for symbol in self.production.derivation[: self.stack_position]
