@@ -2,11 +2,12 @@ from typing import AbstractSet, Iterable
 
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 from compilers.grammar.symbols import Symbol, is_nonterminal
-from compilers.parser.lr_items import LR1Item
+from compilers.parser.lr_items import LR1Item, LRItem
 
 END_OF_CHAIN = Terminal("$")
 
 LR1State = frozenset[LR1Item]
+LRState = frozenset[LRItem]
 
 class LALRParser:
     grammar: Grammar
@@ -64,3 +65,7 @@ def augment_grammar(grammar: Grammar) -> Grammar:
 
     productions = tuple(grammar.productions) + (augmented_production,)
     return Grammar(productions, augmented_start_symbol)
+
+
+def get_transition_symbols(state: LRState) -> AbstractSet[Symbol]:
+    return {item.next_symbol for item in state if not item.complete}

@@ -1,7 +1,7 @@
 from compilers.grammar import Grammar, Nonterminal, Production, Terminal
 from compilers.grammar.productions import ProductionLine
-from compilers.parser.lalr import END_OF_CHAIN, LALRParser
-from compilers.parser.lr_items import LR1Item
+from compilers.parser.lalr import END_OF_CHAIN, LALRParser, get_transition_symbols
+from compilers.parser.lr_items import LR1Item, LRItem
 
 
 def test_parser_augments_grammar() -> None:
@@ -134,3 +134,25 @@ def test_goto() -> None:
 
     core = parser.get_closure({item})
     assert len(parser.get_state_for_transition(core, open_paren)) == 6
+
+
+def test_get_transition_symbols() -> None:
+    ParenList = Nonterminal("ParenList")
+    Pair = Nonterminal("Pair")
+    open_paren = Terminal("(")
+    close_paren = Terminal(")")
+
+    paren_list_production_1 = ProductionLine(ParenList, (ParenList, Pair))
+    paren_list_production_2 = ProductionLine(ParenList, (Pair,))
+
+    pair_production_1 = ProductionLine(Pair, (open_paren, Pair, close_paren))
+
+    lr_state = frozenset(
+        {
+            LRItem(production=paren_list_production_1, stack_position=2),
+            LRItem(production=paren_list_production_2, stack_position=0),
+            LRItem(production=pair_production_1, stack_position=2),
+        }
+    )
+
+    assert get_transition_symbols(lr_state) == {Pair, close_paren}
