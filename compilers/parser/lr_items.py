@@ -12,11 +12,11 @@ Self = TypeVar("Self", bound="LRItem")  # TODO: Remove once mypy supports Self
 @dataclass(frozen=True, kw_only=True)
 class LRItem:
     production: ProductionLine
-    _stack_position: int = 0
+    stack_position: int = 0
 
     @property
     def complete(self) -> bool:
-        return self._stack_position == len(self.production.derivation)
+        return self.stack_position == len(self.production.derivation)
 
     @property
     def next_symbol(self) -> Symbol:
@@ -26,14 +26,14 @@ class LRItem:
 
     @property
     def tail(self) -> Chain:
-        return self.production.derivation[self._stack_position :]
+        return self.production.derivation[self.stack_position :]
 
     def next(self: Self) -> Self:
         if self.complete:
             raise ValueError(
                 "Cannot advance an LR Item that is at the end of the production"
             )
-        return dataclasses.replace(self, _stack_position=self._stack_position + 1)
+        return dataclasses.replace(self, stack_position=self.stack_position + 1)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -42,7 +42,7 @@ class LR1Item(LRItem):
 
     def __repr__(self) -> str:
         head = "".join(
-            str(symbol) for symbol in self.production.derivation[: self._stack_position]
+            str(symbol) for symbol in self.production.derivation[: self.stack_position]
         )
         tail = "".join(str(symbol) for symbol in self.tail)
         return f"[{self.production.nonterminal} -> {head} ⋅ {tail} , {self.lookahead}]"

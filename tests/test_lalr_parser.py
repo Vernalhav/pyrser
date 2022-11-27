@@ -88,7 +88,7 @@ def test_goto_adds_advanced_item() -> None:
     item = LR1Item(production=s_line, lookahead=END_OF_CHAIN)
 
     assert parser.get_state_for_transition({item}, A) == {
-        LR1Item(production=s_line, _stack_position=1, lookahead=END_OF_CHAIN),
+        LR1Item(production=s_line, stack_position=1, lookahead=END_OF_CHAIN),
     }
 
 
@@ -108,7 +108,7 @@ def test_goto_adds_implied_items() -> None:
 
     a_line = ProductionLine(A, (a,))
     assert parser.get_state_for_transition({item}, A) == {
-        LR1Item(production=s_line, _stack_position=1, lookahead=END_OF_CHAIN),
+        LR1Item(production=s_line, stack_position=1, lookahead=END_OF_CHAIN),
         LR1Item(production=a_line, lookahead=END_OF_CHAIN),
     }
 
