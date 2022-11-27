@@ -21,7 +21,7 @@ class LRItem:
     @property
     def next_symbol(self) -> Symbol:
         if self.complete:
-            raise ValueError("Complete item {self} has no next symbol.")
+            raise ValueError(f"Complete item {self} has no next symbol.")
         return self.tail[0]
 
     @property
