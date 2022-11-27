@@ -25,7 +25,7 @@ def test_follow_terminal_implied_items() -> None:
     parser = LALRParser(g)
 
     production_line = ProductionLine(A, (a,))
-    item = LR1Item(production=production_line, lookahead=END_OF_CHAIN)
+    item = LR1Item(production_line, lookahead=END_OF_CHAIN)
 
     assert parser.get_implied_items(item) == set()
 
@@ -42,11 +42,11 @@ def test_follow_nonterminal_implied_items() -> None:
     parser = LALRParser(g)
 
     s_line = ProductionLine(S, (A,))
-    item = LR1Item(production=s_line, lookahead=END_OF_CHAIN)
+    item = LR1Item(s_line, lookahead=END_OF_CHAIN)
 
     a_line = ProductionLine(A, (a,))
     assert parser.get_implied_items(item) == {
-        LR1Item(production=a_line, lookahead=END_OF_CHAIN),
+        LR1Item(a_line, lookahead=END_OF_CHAIN),
     }
 
 
@@ -65,9 +65,7 @@ def test_closure() -> None:
     parser = LALRParser(g)
 
     goal = parser.grammar.start_symbol
-    item = LR1Item(
-        production=ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN
-    )
+    item = LR1Item(ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN)
 
     core = parser.get_closure({item})
     assert len(core) == 9
@@ -85,10 +83,10 @@ def test_goto_adds_advanced_item() -> None:
     parser = LALRParser(g)
 
     s_line = ProductionLine(S, (A,))
-    item = LR1Item(production=s_line, lookahead=END_OF_CHAIN)
+    item = LR1Item(s_line, lookahead=END_OF_CHAIN)
 
     assert parser.get_state_for_transition({item}, A) == {
-        LR1Item(production=s_line, stack_position=1, lookahead=END_OF_CHAIN),
+        LR1Item(s_line, 1, lookahead=END_OF_CHAIN),
     }
 
 
@@ -104,12 +102,12 @@ def test_goto_adds_implied_items() -> None:
     parser = LALRParser(g)
 
     s_line = ProductionLine(S, (A, A))
-    item = LR1Item(production=s_line, lookahead=END_OF_CHAIN)
+    item = LR1Item(s_line, lookahead=END_OF_CHAIN)
 
     a_line = ProductionLine(A, (a,))
     assert parser.get_state_for_transition({item}, A) == {
-        LR1Item(production=s_line, stack_position=1, lookahead=END_OF_CHAIN),
-        LR1Item(production=a_line, lookahead=END_OF_CHAIN),
+        LR1Item(s_line, 1, lookahead=END_OF_CHAIN),
+        LR1Item(a_line, lookahead=END_OF_CHAIN),
     }
 
 
@@ -128,9 +126,7 @@ def test_goto() -> None:
     parser = LALRParser(g)
 
     goal = parser.grammar.start_symbol
-    item = LR1Item(
-        production=ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN
-    )
+    item = LR1Item(ProductionLine(goal, (ParenList,)), lookahead=END_OF_CHAIN)
 
     core = parser.get_closure({item})
     assert len(parser.get_state_for_transition(core, open_paren)) == 6
@@ -149,9 +145,9 @@ def test_get_transition_symbols() -> None:
 
     lr_state = frozenset(
         {
-            LRItem(production=paren_list_production_1, stack_position=2),
-            LRItem(production=paren_list_production_2, stack_position=0),
-            LRItem(production=pair_production_1, stack_position=2),
+            LRItem(paren_list_production_1, 2),
+            LRItem(paren_list_production_2, 0),
+            LRItem(pair_production_1, 2),
         }
     )
 

@@ -9,7 +9,7 @@ from compilers.grammar.symbols import Symbol
 Self = TypeVar("Self", bound="LRItem")  # TODO: Remove once mypy supports Self
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class LRItem:
     production: ProductionLine
     stack_position: int = 0
