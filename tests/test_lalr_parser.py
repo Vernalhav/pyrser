@@ -217,3 +217,25 @@ def test_cannot_merge_lr1_states() -> None:
     )
 
     assert can_merge(lalr_state1, lalr_state2) is False
+
+
+def test_lalr_table_creation() -> None:
+    e = Nonterminal("e")
+    t = Nonterminal("t")
+    f = Nonterminal("f")
+    num = Terminal("NUM")
+    plus = Terminal("+")
+    mult = Terminal("*")
+    open_paren = Terminal("(")
+    close_paren = Terminal(")")
+
+    expr_production = Production(e, [(e, plus, t), t])
+    term_production = Production(t, [(t, mult, f), f])
+    factor_production = Production(f, [(open_paren, e, close_paren), num])
+
+    g = Grammar([expr_production, term_production, factor_production], e)
+    parser = LALRParser(g)
+
+    cc, transitions = parser.compute_parse_table()
+    assert len(cc) == 12
+    assert len(transitions.transitions) == 22
