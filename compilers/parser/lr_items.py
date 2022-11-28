@@ -35,6 +35,13 @@ class LRItem:
             )
         return dataclasses.replace(self, stack_position=self.stack_position + 1)
 
+    def __repr__(self) -> str:
+        head = "".join(
+            str(symbol) for symbol in self.production.derivation[: self.stack_position]
+        )
+        tail = "".join(str(symbol) for symbol in self.tail)
+        return f"{self.production.nonterminal} -> {head} ⋅ {tail}"
+
 
 @dataclass(frozen=True, kw_only=True)
 class LR1Item(LRItem):
@@ -44,8 +51,4 @@ class LR1Item(LRItem):
         return LRItem(self.production, self.stack_position)
 
     def __repr__(self) -> str:
-        head = "".join(
-            str(symbol) for symbol in self.production.derivation[: self.stack_position]
-        )
-        tail = "".join(str(symbol) for symbol in self.tail)
-        return f"[{self.production.nonterminal} -> {head} ⋅ {tail} , {self.lookahead}]"
+        return f"{super().__repr__()} , {self.lookahead}]"
