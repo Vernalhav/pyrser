@@ -21,6 +21,15 @@ def test_cannot_advance_finished_item() -> None:
         item.next()
 
 
+def test_cannot_create_invalid_lr_item() -> None:
+    A = Nonterminal("A")
+    production = Production(A, [()])
+    production_line, *_ = production.derivations
+
+    with pytest.raises(ValueError):
+        LRItem(production_line, stack_position=1)
+
+
 def test_cannot_advance_null_production() -> None:
     A = Nonterminal("A")
     production = Production(A, [()])
@@ -39,7 +48,7 @@ def test_advance_lr1_preserves_lookahead() -> None:
 
     production = Production(A, [(a, b)])
     production_line, *_ = production.derivations
-    item = LR1Item(production_line, lookahead=b)
+    item = LR1Item(production_line, b)
 
     item = item.next()
     assert item.lookahead == b

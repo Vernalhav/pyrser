@@ -1,18 +1,24 @@
 import dataclasses
-from dataclasses import dataclass
-from typing import TypeVar
+from dataclasses import dataclass, field
+
+from typing_extensions import Self
 
 from compilers.grammar import Terminal
 from compilers.grammar.productions import Chain, ProductionLine
 from compilers.grammar.symbols import Symbol
 
-Self = TypeVar("Self", bound="LRItem")  # TODO: Remove once mypy supports Self
-
 
 @dataclass(frozen=True)
 class LRItem:
     production: ProductionLine
-    stack_position: int = 0
+    stack_position: int = field(kw_only=True, default=0)
+
+    def __post_init__(self) -> None:
+        if (
+            self.stack_position > len(self.production.derivation)
+            or self.stack_position < 0
+        ):
+            raise ValueError("LR Item with invalid stack position")
 
     @property
     def complete(self) -> bool:
@@ -43,12 +49,9 @@ class LRItem:
         return f"{self.production.nonterminal} -> {head} ⋅ {tail}"
 
 
-@dataclass(frozen=True, kw_only=True)
+@dataclass(frozen=True)
 class LR1Item(LRItem):
     lookahead: Terminal
 
-    def to_lr(self) -> LRItem:
-        return LRItem(self.production, self.stack_position)
-
     def __repr__(self) -> str:
-        return f"{super().__repr__()} , {self.lookahead}]"
+        return f"{super().__repr__()} , {self.lookahead}"
