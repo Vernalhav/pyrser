@@ -52,7 +52,7 @@ class Grammar:
         return self._productions.values()
 
     @property
-    def _derivations(self) -> Iterable[tuple[Nonterminal, Chain]]:
+    def derivations(self) -> Iterable[tuple[Nonterminal, Chain]]:
         for production in self._productions.values():
             for nonterminal, derivation in production.derivations:
                 yield nonterminal, derivation
@@ -76,7 +76,7 @@ class Grammar:
         if nonterminal == self.start_symbol:
             follow.ends_chain = True
 
-        for production_nonterminal, derivation in self._derivations:
+        for production_nonterminal, derivation in self.derivations:
             self._process_follow_derivation(
                 nonterminal, follow, production_nonterminal, derivation
             )
@@ -137,7 +137,7 @@ class Grammar:
         # TODO: Check no reserved symbols used
         # TODO: Ensure only one start symbol
         # TODO: Disallow same nonterminal in multiple productions
-        for _, derivation in self._derivations:
+        for _, derivation in self.derivations:
             for symbol in derivation:
                 if is_nonterminal(symbol) and symbol not in self.nonterminals:
                     raise ValueError(f"Nonterminal {symbol} has no derivation.")
