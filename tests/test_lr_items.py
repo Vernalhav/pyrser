@@ -5,6 +5,19 @@ from compilers.grammar.productions import Production
 from compilers.parser.lr_items import LR1Item, LRItem
 
 
+def test_lr_items_value_semantics() -> None:
+    A = Nonterminal("A")
+    a = Terminal("a")
+    b = Terminal("b")
+
+    production = Production(A, [(a, b)])
+    production_line, *_ = production.derivations
+    item_a = LRItem(production_line)
+    item_b = LRItem(production_line)
+
+    assert len({item_a, item_b}) == 1
+
+
 def test_cannot_advance_finished_item() -> None:
     A = Nonterminal("A")
     a = Terminal("a")
@@ -39,6 +52,19 @@ def test_cannot_advance_null_production() -> None:
 
     with pytest.raises(ValueError):
         item.next()
+
+
+def test_lr1_items_value_semantics() -> None:
+    A = Nonterminal("A")
+    a = Terminal("a")
+    b = Terminal("b")
+
+    production = Production(A, [(a, b)])
+    production_line, *_ = production.derivations
+    item_a = LR1Item(production_line, b)
+    item_b = LR1Item(production_line, b)
+
+    assert len({item_a, item_b}) == 1
 
 
 def test_advance_lr1_preserves_lookahead() -> None:
