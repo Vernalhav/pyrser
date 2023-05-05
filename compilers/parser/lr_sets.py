@@ -5,6 +5,7 @@ from dataclasses import dataclass, field
 from typing import AbstractSet, Generic, Iterable, TypeVar
 
 from compilers.grammar.grammar import Grammar
+from compilers.grammar.productions import ProductionLine
 from compilers.grammar.symbols import is_nonterminal
 from compilers.parser.lr_items import LRItem
 
@@ -50,8 +51,11 @@ def closure(lr_set: LRSet[LRItem], g: Grammar) -> LRSet[LRItem]:
 
         for item in current_set.kernel | current_set.nonkernel:
             if not item.complete and is_nonterminal(nonterminal := item.next_symbol):
-                for line in g.get_production(nonterminal).derivations:
+                production = g.get_production(nonterminal)
+                for line in production.derivations:
                     nonkernel_items.add(LRItem(line))
+                if production.nullable:
+                    nonkernel_items.add(LRItem(ProductionLine(nonterminal, ())))
 
         previous_set = current_set
         current_set = LRSet(lr_set.kernel, frozenset(nonkernel_items))

@@ -93,3 +93,22 @@ def test_lr_set_closure_doesnt_propagate_nonterminal() -> None:
     assert closure(lr_set, g).nonkernel == {a_to_a_item, a_to_b_item, b_to_b_item}
 
 
+def test_lr_set_closure_creates_empty_item() -> None:
+    # S -> A
+    # A -> <empty string>
+
+    S = Nonterminal("S")
+    A = Nonterminal("A")
+
+    s_production = Production(S, (A,))
+    a_production = Production(A, ((),))
+
+    start_item = LRItem(ProductionLine(S, (A,)))
+    empty_item = LRItem(ProductionLine(A, ()))
+
+    g = Grammar((s_production, a_production), S)
+
+    lr_set = LRSet.from_items({start_item})
+
+    assert closure(lr_set, g).nonkernel == {empty_item}
+
