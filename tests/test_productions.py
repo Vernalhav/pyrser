@@ -1,3 +1,5 @@
+import pytest
+
 from compilers.grammar import Nonterminal, Production, Terminal
 
 
@@ -35,3 +37,10 @@ def test_single_symbol_production_gets_added() -> None:
 
     bit_production = Production(bit, [zero, one])
     assert len(bit_production.derivations) == 2
+
+
+def test_empty_production_raises_exception() -> None:
+    A = Nonterminal("A")
+
+    with pytest.raises(ValueError):
+        Production(A, ())

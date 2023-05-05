@@ -32,6 +32,10 @@ class Production:
             ProductionLine(self.nonterminal, derivation)
             for derivation in tuple_derivations
         )
+
+        if len(self.derivations) == 0:
+            raise ValueError("Cannot create a production with no derivations")
+
         self.nullable = any(len(derivation) == 0 for _, derivation in self.derivations)
 
     def __repr__(self) -> str:
