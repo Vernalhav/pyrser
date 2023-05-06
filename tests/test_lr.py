@@ -192,3 +192,39 @@ def test_lr_sets_creation_small_grammar() -> None:
         LRSet.from_items({s_to_a_item.next()}),
         LRSet.from_items({s_to_b_item.next()}),
     }
+
+
+def test_lr_sets_creation_recursive_grammar() -> None:
+    # S -> L
+    # L -> LP | P
+    # P -> (L) | ()
+
+    S = Nonterminal("S")
+    P = Nonterminal("P")
+    L = Nonterminal("L")
+    open = Terminal("(")
+    close = Terminal(")")
+
+    start_production = Production(S, [L])
+    p_production = Production(P, [(open, L, close), (open, close)])
+    l_production = Production(L, [(L, P), P])
+
+    start_item = LRItem(ProductionLine(S, (L,)))
+    p_to_l = LRItem(ProductionLine(P, (open, L, close)))
+    p_to_paren = LRItem(ProductionLine(P, (open, close)))
+    l_to_lp = LRItem(ProductionLine(L, (L, P)))
+    l_to_p = LRItem(ProductionLine(L, (P,)))
+
+    g = Grammar((start_production, p_production, l_production), S)
+    lr_sets = compute_lr_sets(g)
+
+    assert lr_sets == {
+        LRSet.from_items({start_item}),
+        LRSet.from_items({p_to_l.next(), p_to_paren.next()}),
+        LRSet.from_items({start_item.next(), l_to_lp.next()}),
+        LRSet.from_items({l_to_p.next()}),
+        LRSet.from_items({l_to_lp.next().next()}),
+        LRSet.from_items({p_to_paren.next().next()}),
+        LRSet.from_items({p_to_l.next().next(), l_to_lp.next()}),
+        LRSet.from_items({p_to_l.next().next().next()}),
+    }
