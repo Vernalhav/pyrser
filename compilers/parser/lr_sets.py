@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from typing import AbstractSet, Generic, Iterable, TypeVar
+from typing import AbstractSet, Generic, Iterable, Iterator, TypeVar
 
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.productions import ProductionLine
-from compilers.grammar.symbols import is_nonterminal
+from compilers.grammar.symbols import Symbol, is_nonterminal
 from compilers.parser.lr_items import LRItem
 
 LRItemType = TypeVar("LRItemType", bound=LRItem)
@@ -28,6 +28,12 @@ class LRSet(Generic[LRItemType]):
         """Custom hashing method that excludes nonkernel items."""
         return hash(self.kernel)
 
+    def __iter__(self) -> Iterator[LRItemType]:
+        for item in self.kernel:
+            yield item
+        for item in self.nonkernel:
+            yield item
+
     @staticmethod
     def from_items(
         kernel: Iterable[LRItemType], nonkernel: Iterable[LRItemType] | None = None
@@ -45,7 +51,7 @@ def get_transition_symbols(
 ) -> Iterable[tuple[Symbol, Iterable[LRItem]]]:
     transition_symbols = defaultdict(list)
 
-    for item in lr_set.kernel | lr_set.nonkernel:
+    for item in lr_set:
         if not item.complete:
             transition_symbols[item.next_symbol].append(item)
 
@@ -59,7 +65,7 @@ def closure(lr_set: LRSet[LRItem], g: Grammar) -> LRSet[LRItem]:
     while previous_set is None or previous_set.nonkernel != current_set.nonkernel:
         nonkernel_items = set(current_set.nonkernel)
 
-        for item in current_set.kernel | current_set.nonkernel:
+        for item in current_set:
             if not item.complete and is_nonterminal(nonterminal := item.next_symbol):
                 production = g.get_production(nonterminal)
                 for line in production.derivations:
