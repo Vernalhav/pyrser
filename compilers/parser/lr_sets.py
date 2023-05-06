@@ -69,13 +69,12 @@ def compute_lr_sets(g: Grammar) -> set[LRSet[LRItem]]:
 
 
 def compute_transition_sets(lr_set: LRSet[LRItem]) -> Iterable[LRSet[LRItem]]:
-    return (
-        goto(lr_set, symbol)
-        for symbol, _ in get_transition_symbols(lr_set)
-    )
+    """Assumes `lr_set` has already been closed"""
+    return (goto(lr_set, symbol) for symbol, _ in get_transition_symbols(lr_set))
 
 
 def goto(lr_set: LRSet[LRItem], symbol: Symbol) -> LRSet[LRItem]:
+    """Assumes `lr_set` has already been closed"""
     kernel = frozenset(
         item.next()
         for item in lr_set
@@ -87,6 +86,7 @@ def goto(lr_set: LRSet[LRItem], symbol: Symbol) -> LRSet[LRItem]:
 def get_transition_symbols(
     lr_set: LRSet[LRItem],
 ) -> Iterable[tuple[Symbol, Iterable[LRItem]]]:
+    """Assumes `lr_set` has already been closed"""
     transition_symbols = defaultdict(list)
 
     for item in lr_set:
