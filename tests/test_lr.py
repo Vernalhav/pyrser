@@ -3,7 +3,13 @@ from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
 from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LRSet, closure, get_transition_symbols
+from compilers.parser.lr_sets import (
+    LRSet,
+    closure,
+    compute_lr_sets,
+    get_transition_symbols,
+    goto,
+)
 
 
 def test_lr_sets_compare_kernel_only() -> None:
@@ -140,3 +146,49 @@ def test_symbol_grouping_includes_nonkernel() -> None:
         assert set(items) == expected[nonterminal]
 
 
+def test_goto_state_creation() -> None:
+    # S -> A | BA
+    # B -> aAb | A
+
+    S = Nonterminal("S")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
+    a = Terminal("a")
+    b = Terminal("b")
+
+    s_to_a_item = LRItem(ProductionLine(S, (A,)))
+    s_to_ba_item = LRItem(ProductionLine(S, (B, A)))
+    b_to_a_item = LRItem(ProductionLine(B, (A,)))
+    b_to_aab_item = LRItem(ProductionLine(B, (a, A, b))).next()
+
+    lr_set = LRSet.from_items({b_to_aab_item}, {s_to_ba_item, b_to_a_item, s_to_a_item})
+    assert goto(lr_set, A) == LRSet.from_items(
+        {s_to_a_item.next(), b_to_aab_item.next(), b_to_a_item.next()}
+    )
+
+
+def test_lr_sets_creation_small_grammar() -> None:
+    # S' -> S
+    # S -> a | b
+
+    Sp = Nonterminal("S'")
+    S = Nonterminal("S")
+    a = Terminal("a")
+    b = Terminal("b")
+
+    start_production = Production(Sp, (S,))
+    s_production = Production(S, (a, b))
+
+    start_item = LRItem(ProductionLine(Sp, (S,)))
+    s_to_a_item = LRItem(ProductionLine(S, (a,)))
+    s_to_b_item = LRItem(ProductionLine(S, (b,)))
+
+    g = Grammar((start_production, s_production), Sp)
+    lr_sets = compute_lr_sets(g)
+
+    assert lr_sets == {
+        LRSet.from_items({start_item}),  # Only including kernel items for brevity
+        LRSet.from_items({start_item.next()}),
+        LRSet.from_items({s_to_a_item.next()}),
+        LRSet.from_items({s_to_b_item.next()}),
+    }

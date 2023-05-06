@@ -46,6 +46,44 @@ class LRSet(Generic[LRItemType]):
         return LRSet(frozenset(kernel))
 
 
+def compute_lr_sets(g: Grammar) -> set[LRSet[LRItem]]:
+    if is_augmented(g) is False:
+        raise ValueError("Given grammar is not augmented with start production")
+
+    sets: set[LRSet[LRItem]] = set()
+    work: deque[LRSet[LRItem]] = deque()
+
+    start_item = get_initial_lr_item(g)
+    work.append(LRSet[LRItem](frozenset((start_item,))))
+
+    while len(work) > 0:
+        current_set = work.popleft()
+        sets.add(current_set)
+
+        transition_sets = compute_transition_sets(closure(current_set, g))
+        for transition_set in transition_sets:
+            if transition_set not in sets:
+                work.append(transition_set)
+
+    return sets
+
+
+def compute_transition_sets(lr_set: LRSet[LRItem]) -> Iterable[LRSet[LRItem]]:
+    return (
+        goto(lr_set, symbol)
+        for symbol, _ in get_transition_symbols(lr_set)
+    )
+
+
+def goto(lr_set: LRSet[LRItem], symbol: Symbol) -> LRSet[LRItem]:
+    kernel = frozenset(
+        item.next()
+        for item in lr_set
+        if not item.complete and item.next_symbol == symbol
+    )
+    return LRSet(kernel)
+
+
 def get_transition_symbols(
     lr_set: LRSet[LRItem],
 ) -> Iterable[tuple[Symbol, Iterable[LRItem]]]:
@@ -84,3 +122,13 @@ def get_initial_lr_item(g: Grammar) -> LRItem:
     initial_line, *_ = g.get_production(g.start_symbol).derivations
     return LRItem(initial_line)
 
+
+def is_augmented(g: Grammar) -> bool:
+    if len(g.get_production(g.start_symbol).derivations) > 1:
+        return False
+
+    for _, handle in g.derivations:
+        if g.start_symbol in handle:
+            return False
+
+    return True
