@@ -3,7 +3,7 @@ from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
 from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LRSet, closure, compute_lr_sets
+from compilers.parser.lr_sets import LRSet, closure, get_transition_symbols
 
 
 def test_lr_sets_compare_kernel_only() -> None:
@@ -111,4 +111,32 @@ def test_lr_set_closure_creates_empty_item() -> None:
     lr_set = LRSet.from_items({start_item})
 
     assert closure(lr_set, g).nonkernel == {empty_item}
+
+
+def test_symbol_grouping_includes_nonkernel() -> None:
+    # S -> aA
+    # A -> B
+    # B -> b | Aa
+
+    S = Nonterminal("S")
+    A = Nonterminal("A")
+    B = Nonterminal("B")
+    a = Terminal("a")
+    b = Terminal("b")
+
+    s_to_a_item = LRItem(ProductionLine(S, (a, A))).next()
+    a_to_b_item = LRItem(ProductionLine(A, (B,)))
+    b_to_b_item = LRItem(ProductionLine(B, (b,)))
+    b_to_aa_item = LRItem(ProductionLine(B, (A, a)))
+
+    lr_set = LRSet.from_items({s_to_a_item}, {a_to_b_item, b_to_aa_item, b_to_b_item})
+
+    expected = {A: {s_to_a_item, b_to_aa_item}, B: {a_to_b_item}, b: {b_to_b_item}}
+    received = list(get_transition_symbols(lr_set))
+
+    assert len(expected) == len(received)
+    for nonterminal, items in received:
+        assert nonterminal in expected
+        assert set(items) == expected[nonterminal]
+
 

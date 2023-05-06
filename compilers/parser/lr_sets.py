@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import deque
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from typing import AbstractSet, Generic, Iterable, TypeVar
 
@@ -39,14 +39,24 @@ class LRSet(Generic[LRItemType]):
             return LRSet(frozenset(kernel), frozenset(nonkernel))
         return LRSet(frozenset(kernel))
 
+
+def get_transition_symbols(
+    lr_set: LRSet[LRItem],
+) -> Iterable[tuple[Symbol, Iterable[LRItem]]]:
+    transition_symbols = defaultdict(list)
+
+    for item in lr_set.kernel | lr_set.nonkernel:
+        if not item.complete:
+            transition_symbols[item.next_symbol].append(item)
+
+    return transition_symbols.items()
+
+
 def closure(lr_set: LRSet[LRItem], g: Grammar) -> LRSet[LRItem]:
     previous_set: LRSet[LRItem] | None = None
     current_set = lr_set
 
-    while (
-        previous_set is None
-        or previous_set.nonkernel != current_set.nonkernel
-    ):
+    while previous_set is None or previous_set.nonkernel != current_set.nonkernel:
         nonkernel_items = set(current_set.nonkernel)
 
         for item in current_set.kernel | current_set.nonkernel:
