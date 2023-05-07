@@ -22,9 +22,9 @@ def test_lr_sets_compare_kernel_only() -> None:
     s_to_a_item = LRItem(ProductionLine(S, (a,)))
     s_to_b_item = LRItem(ProductionLine(S, (b,)))
 
-    kernel_only = LRSet.from_items({start_item})
-    different_kernel = LRSet.from_items({start_item, s_to_a_item})
-    with_nonkernel = LRSet.from_items({start_item}, {s_to_a_item, s_to_b_item})
+    kernel_only = LRSet({start_item})
+    different_kernel = LRSet({start_item, s_to_a_item})
+    with_nonkernel = LRSet({start_item}, {s_to_a_item, s_to_b_item})
 
     assert kernel_only == with_nonkernel
     assert len({kernel_only, with_nonkernel}) == 1
@@ -58,7 +58,7 @@ def test_lr_set_closure_includes_all_kernel_items() -> None:
 
     g = Grammar((s_production, a_production, b_production, c_production), S)
 
-    lr_set = LRSet.from_items({start_item, a_to_a_item.next()})
+    lr_set = LRSet({start_item, a_to_a_item.next()})
 
     assert closure(lr_set, g).nonkernel == {
         a_to_a_item,
@@ -94,7 +94,7 @@ def test_lr_set_closure_doesnt_propagate_nonterminal() -> None:
 
     g = Grammar((s_production, a_production, b_production, c_production), S)
 
-    lr_set = LRSet.from_items({start_item})
+    lr_set = LRSet({start_item})
 
     assert closure(lr_set, g).nonkernel == {a_to_a_item, a_to_b_item, b_to_b_item}
 
@@ -114,7 +114,7 @@ def test_lr_set_closure_creates_empty_item() -> None:
 
     g = Grammar((s_production, a_production), S)
 
-    lr_set = LRSet.from_items({start_item})
+    lr_set = LRSet({start_item})
 
     assert closure(lr_set, g).nonkernel == {empty_item}
 
@@ -135,7 +135,7 @@ def test_symbol_grouping_includes_nonkernel() -> None:
     b_to_b_item = LRItem(ProductionLine(B, (b,)))
     b_to_aa_item = LRItem(ProductionLine(B, (A, a)))
 
-    lr_set = LRSet.from_items({s_to_a_item}, {a_to_b_item, b_to_aa_item, b_to_b_item})
+    lr_set = LRSet({s_to_a_item}, {a_to_b_item, b_to_aa_item, b_to_b_item})
 
     expected = {A: {s_to_a_item, b_to_aa_item}, B: {a_to_b_item}, b: {b_to_b_item}}
     received = list(get_transition_symbols(lr_set))
@@ -161,8 +161,8 @@ def test_goto_state_creation() -> None:
     b_to_a_item = LRItem(ProductionLine(B, (A,)))
     b_to_aab_item = LRItem(ProductionLine(B, (a, A, b))).next()
 
-    lr_set = LRSet.from_items({b_to_aab_item}, {s_to_ba_item, b_to_a_item, s_to_a_item})
-    assert goto(lr_set, A) == LRSet.from_items(
+    lr_set = LRSet({b_to_aab_item}, {s_to_ba_item, b_to_a_item, s_to_a_item})
+    assert goto(lr_set, A) == LRSet(
         {s_to_a_item.next(), b_to_aab_item.next(), b_to_a_item.next()}
     )
 
@@ -187,10 +187,10 @@ def test_lr_sets_creation_small_grammar() -> None:
     lr_sets = compute_lr_sets(g)
 
     assert lr_sets == {
-        LRSet.from_items({start_item}),  # Only including kernel items for brevity
-        LRSet.from_items({start_item.next()}),
-        LRSet.from_items({s_to_a_item.next()}),
-        LRSet.from_items({s_to_b_item.next()}),
+        LRSet({start_item}),  # Only including kernel items for brevity
+        LRSet({start_item.next()}),
+        LRSet({s_to_a_item.next()}),
+        LRSet({s_to_b_item.next()}),
     }
 
 
@@ -219,12 +219,12 @@ def test_lr_sets_creation_recursive_grammar() -> None:
     lr_sets = compute_lr_sets(g)
 
     assert lr_sets == {
-        LRSet.from_items({start_item}),
-        LRSet.from_items({p_to_l.next(), p_to_paren.next()}),
-        LRSet.from_items({start_item.next(), l_to_lp.next()}),
-        LRSet.from_items({l_to_p.next()}),
-        LRSet.from_items({l_to_lp.next().next()}),
-        LRSet.from_items({p_to_paren.next().next()}),
-        LRSet.from_items({p_to_l.next().next(), l_to_lp.next()}),
-        LRSet.from_items({p_to_l.next().next().next()}),
+        LRSet({start_item}),
+        LRSet({p_to_l.next(), p_to_paren.next()}),
+        LRSet({start_item.next(), l_to_lp.next()}),
+        LRSet({l_to_p.next()}),
+        LRSet({l_to_lp.next().next()}),
+        LRSet({p_to_paren.next().next()}),
+        LRSet({p_to_l.next().next(), l_to_lp.next()}),
+        LRSet({p_to_l.next().next().next()}),
     }

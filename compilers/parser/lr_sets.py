@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict, deque
-from dataclasses import dataclass, field
-from typing import AbstractSet, Generic, Iterable, Iterator, TypeVar
+from dataclasses import dataclass
+from typing import AbstractSet, Generic, Iterable, Iterator, TypeVar, overload
 
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.productions import ProductionLine
@@ -14,8 +14,34 @@ LRItemType = TypeVar("LRItemType", bound=LRItem)
 
 @dataclass(frozen=True)
 class LRSet(Generic[LRItemType]):
-    kernel: frozenset[LRItemType]
-    nonkernel: frozenset[LRItemType] = field(default_factory=frozenset)
+    _KERNEL_FIELD_NAME = "_kernel"
+    _NONKERNEL_FIELD_NAME = "_nonkernel"
+
+    @property
+    def kernel(self) -> frozenset[LRItemType]:
+        return getattr(self, self._KERNEL_FIELD_NAME)
+
+    @property
+    def nonkernel(self) -> frozenset[LRItemType]:
+        return getattr(self, self._NONKERNEL_FIELD_NAME)
+
+    @overload
+    def __init__(self, kernel: Iterable[LRItemType]) -> None:
+        pass
+
+    @overload
+    def __init__(
+        self, kernel: Iterable[LRItemType], nonkernel: Iterable[LRItemType]
+    ) -> None:
+        pass
+
+    def __init__(
+        self,
+        kernel: Iterable[LRItemType],
+        nonkernel: Iterable[LRItemType] | None = None,
+    ) -> None:
+        object.__setattr__(self, self._KERNEL_FIELD_NAME, frozenset(kernel))
+        object.__setattr__(self, self._NONKERNEL_FIELD_NAME, frozenset(nonkernel or {}))
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, LRSet):
@@ -33,17 +59,6 @@ class LRSet(Generic[LRItemType]):
             yield item
         for item in self.nonkernel:
             yield item
-
-    @staticmethod
-    def from_items(
-        kernel: Iterable[LRItemType], nonkernel: Iterable[LRItemType] | None = None
-    ) -> LRSet[LRItemType]:
-        """Convenience method to pass any iterable to the constructor
-        and avoid having to explicitly convert the iterables to frozensets.
-        """
-        if nonkernel is not None:
-            return LRSet(frozenset(kernel), frozenset(nonkernel))
-        return LRSet(frozenset(kernel))
 
 
 def compute_lr_sets(g: Grammar) -> set[LRSet[LRItem]]:
