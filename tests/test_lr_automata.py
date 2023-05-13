@@ -1,34 +1,18 @@
-from compilers.grammar import Grammar
+from compilers.grammar.grammar import Grammar
 from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
+from compilers.grammar.symbols import Symbol
 from compilers.grammar.terminals import Terminal
-from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import (
-    LRSet,
+from compilers.parser.lr_automata import (
+    LRAutomata,
     closure,
-    compute_lr_sets,
     get_transition_symbols,
     goto,
 )
+from compilers.parser.lr_items import LRItem
+from compilers.parser.lr_sets import LRSet
 
-
-def test_lr_sets_compare_kernel_only() -> None:
-    S_prime = Nonterminal("S'")
-    S = Nonterminal("S")
-    a = Terminal("a")
-    b = Terminal("b")
-
-    start_item = LRItem(ProductionLine(S_prime, (S,)))
-    s_to_a_item = LRItem(ProductionLine(S, (a,)))
-    s_to_b_item = LRItem(ProductionLine(S, (b,)))
-
-    kernel_only = LRSet({start_item})
-    different_kernel = LRSet({start_item, s_to_a_item})
-    with_nonkernel = LRSet({start_item}, {s_to_a_item, s_to_b_item})
-
-    assert kernel_only == with_nonkernel
-    assert len({kernel_only, with_nonkernel}) == 1
-    assert len({kernel_only, different_kernel}) == 2
+Transitions = dict[tuple[LRSet[LRItem], Symbol], LRSet[LRItem]]
 
 
 def test_lr_set_closure_includes_all_kernel_items() -> None:
@@ -184,14 +168,25 @@ def test_lr_sets_creation_small_grammar() -> None:
     s_to_b_item = LRItem(ProductionLine(S, (b,)))
 
     g = Grammar((start_production, s_production), Sp)
-    lr_sets = compute_lr_sets(g)
+    lr_automata = LRAutomata(g)
 
-    assert lr_sets == {
-        LRSet({start_item}),  # Only including kernel items for brevity
-        LRSet({start_item.next()}),
+    states = (
+        LRSet({start_item}),
         LRSet({s_to_a_item.next()}),
         LRSet({s_to_b_item.next()}),
+        LRSet({start_item.next()}),
+    )
+
+    expected_transitions: Transitions = {
+        (states[0], a): states[1],
+        (states[0], b): states[2],
+        (states[0], S): states[3],
     }
+
+    assert lr_automata.states == set(states)
+    assert len(expected_transitions) == lr_automata.transition_count
+    for (start, symbol), end in expected_transitions.items():
+        assert lr_automata.get_transition(start, symbol) == end
 
 
 def test_lr_sets_creation_recursive_grammar() -> None:
@@ -216,9 +211,9 @@ def test_lr_sets_creation_recursive_grammar() -> None:
     l_to_p = LRItem(ProductionLine(L, (P,)))
 
     g = Grammar((start_production, p_production, l_production), S)
-    lr_sets = compute_lr_sets(g)
+    lr_automata = LRAutomata(g)
 
-    assert lr_sets == {
+    states = (
         LRSet({start_item}),
         LRSet({p_to_l.next(), p_to_paren.next()}),
         LRSet({start_item.next(), l_to_lp.next()}),
@@ -227,4 +222,24 @@ def test_lr_sets_creation_recursive_grammar() -> None:
         LRSet({p_to_paren.next().next()}),
         LRSet({p_to_l.next().next(), l_to_lp.next()}),
         LRSet({p_to_l.next().next().next()}),
+    )
+
+    expected_transitions: Transitions = {
+        (states[0], P): states[3],
+        (states[0], open): states[1],
+        (states[0], L): states[2],
+        (states[1], open): states[1],
+        (states[1], close): states[5],
+        (states[1], L): states[6],
+        (states[1], P): states[3],
+        (states[2], open): states[1],
+        (states[2], P): states[4],
+        (states[6], open): states[1],
+        (states[6], close): states[7],
+        (states[6], P): states[4],
     }
+
+    assert lr_automata.states == set(states)
+    assert len(expected_transitions) == lr_automata.transition_count
+    for (start, symbol), end in expected_transitions.items():
+        assert lr_automata.get_transition(start, symbol) == end
