@@ -29,10 +29,10 @@ def test_lr_set_closure_includes_all_kernel_items() -> None:
     b = Terminal("b")
     c = Terminal("c")
 
-    s_production = Production(S, (A,))
-    a_production = Production(A, ((a, C), B))
-    b_production = Production(B, (b,))
-    c_production = Production(C, (c,))
+    s_production = Production(S, [A])
+    a_production = Production(A, [(a, C), B])
+    b_production = Production(B, [b])
+    c_production = Production(C, [c])
 
     start_item = LRItem(ProductionLine(S, (A,)))
     a_to_a_item = LRItem(ProductionLine(A, (a, C)))
@@ -66,10 +66,10 @@ def test_lr_set_closure_doesnt_propagate_nonterminal() -> None:
     b = Terminal("b")
     c = Terminal("c")
 
-    s_production = Production(S, (A,))
-    a_production = Production(A, ((a, C), B))
-    b_production = Production(B, (b,))
-    c_production = Production(C, (c,))
+    s_production = Production(S, [A])
+    a_production = Production(A, [(a, C), B])
+    b_production = Production(B, [b])
+    c_production = Production(C, [c])
 
     start_item = LRItem(ProductionLine(S, (A,)))
     a_to_a_item = LRItem(ProductionLine(A, (a, C)))
@@ -90,8 +90,8 @@ def test_lr_set_closure_creates_empty_item() -> None:
     S = Nonterminal("S")
     A = Nonterminal("A")
 
-    s_production = Production(S, (A,))
-    a_production = Production(A, ((),))
+    s_production = Production(S, [A])
+    a_production = Production(A, [()])
 
     start_item = LRItem(ProductionLine(S, (A,)))
     empty_item = LRItem(ProductionLine(A, ()))
@@ -160,8 +160,8 @@ def test_lr_sets_creation_small_grammar() -> None:
     a = Terminal("a")
     b = Terminal("b")
 
-    start_production = Production(Sp, (S,))
-    s_production = Production(S, (a, b))
+    start_production = Production(Sp, [S])
+    s_production = Production(S, [a, b])
 
     start_item = LRItem(ProductionLine(Sp, (S,)))
     s_to_a_item = LRItem(ProductionLine(S, (a,)))
