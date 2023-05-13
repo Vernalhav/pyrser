@@ -60,3 +60,6 @@ class LRSet(Generic[LRItemType]):
     def __repr__(self) -> str:
         kernel_lines = [str(item).strip() for item in self.kernel]
         return ", ".join(kernel_lines)
+
+
+LR0Set = LRSet[LRItem]

@@ -10,9 +10,9 @@ from compilers.parser.lr_automata import (
     goto,
 )
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LRSet
+from compilers.parser.lr_sets import LR0Set, LRSet
 
-Transitions = dict[tuple[LRSet[LRItem], Symbol], LRSet[LRItem]]
+Transitions = dict[tuple[LR0Set, Symbol], LR0Set]
 
 
 def test_lr_set_closure_includes_all_kernel_items() -> None:

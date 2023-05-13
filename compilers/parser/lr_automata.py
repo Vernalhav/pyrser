@@ -5,9 +5,7 @@ from compilers.grammar.grammar import Grammar
 from compilers.grammar.productions import ProductionLine
 from compilers.grammar.symbols import Symbol, is_nonterminal
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LRSet
-
-LR0Set = LRSet[LRItem]
+from compilers.parser.lr_sets import LR0Set, LRSet
 
 
 class LRAutomata:
