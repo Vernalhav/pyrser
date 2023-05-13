@@ -56,3 +56,7 @@ class LRSet(Generic[LRItemType]):
             yield item
         for item in self.nonkernel:
             yield item
+
+    def __repr__(self) -> str:
+        kernel_lines = [str(item).strip() for item in self.kernel]
+        return ", ".join(kernel_lines)
