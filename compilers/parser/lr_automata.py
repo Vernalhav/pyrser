@@ -2,7 +2,6 @@ from collections import defaultdict, deque
 from typing import Iterable
 
 from compilers.grammar.grammar import Grammar
-from compilers.grammar.productions import ProductionLine
 from compilers.grammar.symbols import Symbol, is_nonterminal
 from compilers.parser.lr_items import LRItem
 from compilers.parser.lr_sets import LR0Set, LRSet
@@ -90,8 +89,6 @@ def closure(lr_set: LR0Set, g: Grammar) -> LR0Set:
                 production = g.get_production(nonterminal)
                 for line in production.derivations:
                     nonkernel_items.add(LRItem(line))
-                if production.nullable:
-                    nonkernel_items.add(LRItem(ProductionLine(nonterminal, ())))
 
         previous_set = current_set
         current_set = LRSet(lr_set.kernel, frozenset(nonkernel_items))
