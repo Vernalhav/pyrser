@@ -3,14 +3,9 @@ from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
 from compilers.grammar.symbols import Symbol
 from compilers.grammar.terminals import Terminal
-from compilers.parser.lr_automata import (
-    LRAutomata,
-    closure,
-    get_transition_symbols,
-    goto,
-)
+from compilers.parser.lr_automata import LRAutomata, get_transition_symbols, goto
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LR0Set, LRSet
+from compilers.parser.lr_sets import LR0Set
 
 Transitions = dict[tuple[LR0Set, Symbol], LR0Set]
 
@@ -42,9 +37,9 @@ def test_lr_set_closure_includes_all_kernel_items() -> None:
 
     g = Grammar((s_production, a_production, b_production, c_production), S)
 
-    lr_set = LRSet({start_item, a_to_a_item.next()})
+    lr_set = LR0Set({start_item, a_to_a_item.next()})
 
-    assert closure(lr_set, g).nonkernel == {
+    assert lr_set.closure(g).nonkernel == {
         a_to_a_item,
         a_to_b_item,
         b_to_b_item,
@@ -78,9 +73,9 @@ def test_lr_set_closure_doesnt_propagate_nonterminal() -> None:
 
     g = Grammar((s_production, a_production, b_production, c_production), S)
 
-    lr_set = LRSet({start_item})
+    lr_set = LR0Set({start_item})
 
-    assert closure(lr_set, g).nonkernel == {a_to_a_item, a_to_b_item, b_to_b_item}
+    assert lr_set.closure(g).nonkernel == {a_to_a_item, a_to_b_item, b_to_b_item}
 
 
 def test_lr_set_closure_creates_empty_item() -> None:
@@ -98,9 +93,9 @@ def test_lr_set_closure_creates_empty_item() -> None:
 
     g = Grammar((s_production, a_production), S)
 
-    lr_set = LRSet({start_item})
+    lr_set = LR0Set({start_item})
 
-    assert closure(lr_set, g).nonkernel == {empty_item}
+    assert lr_set.closure(g).nonkernel == {empty_item}
 
 
 def test_symbol_grouping_includes_nonkernel() -> None:
@@ -119,7 +114,7 @@ def test_symbol_grouping_includes_nonkernel() -> None:
     b_to_b_item = LRItem(ProductionLine(B, (b,)))
     b_to_aa_item = LRItem(ProductionLine(B, (A, a)))
 
-    lr_set = LRSet({s_to_a_item}, {a_to_b_item, b_to_aa_item, b_to_b_item})
+    lr_set = LR0Set({s_to_a_item}, {a_to_b_item, b_to_aa_item, b_to_b_item})
 
     expected = {A: {s_to_a_item, b_to_aa_item}, B: {a_to_b_item}, b: {b_to_b_item}}
     received = list(get_transition_symbols(lr_set))
@@ -145,8 +140,8 @@ def test_goto_state_creation() -> None:
     b_to_a_item = LRItem(ProductionLine(B, (A,)))
     b_to_aab_item = LRItem(ProductionLine(B, (a, A, b))).next()
 
-    lr_set = LRSet({b_to_aab_item}, {s_to_ba_item, b_to_a_item, s_to_a_item})
-    assert goto(lr_set, A) == LRSet(
+    lr_set = LR0Set({b_to_aab_item}, {s_to_ba_item, b_to_a_item, s_to_a_item})
+    assert goto(lr_set, A) == LR0Set(
         {s_to_a_item.next(), b_to_aab_item.next(), b_to_a_item.next()}
     )
 
@@ -171,10 +166,10 @@ def test_lr_sets_creation_small_grammar() -> None:
     lr_automata = LRAutomata(g)
 
     states = (
-        LRSet({start_item}),
-        LRSet({s_to_a_item.next()}),
-        LRSet({s_to_b_item.next()}),
-        LRSet({start_item.next()}),
+        LR0Set({start_item}),
+        LR0Set({s_to_a_item.next()}),
+        LR0Set({s_to_b_item.next()}),
+        LR0Set({start_item.next()}),
     )
 
     expected_transitions: Transitions = {
@@ -214,14 +209,14 @@ def test_lr_sets_creation_recursive_grammar() -> None:
     lr_automata = LRAutomata(g)
 
     states = (
-        LRSet({start_item}),
-        LRSet({p_to_l.next(), p_to_paren.next()}),
-        LRSet({start_item.next(), l_to_lp.next()}),
-        LRSet({l_to_p.next()}),
-        LRSet({l_to_lp.next().next()}),
-        LRSet({p_to_paren.next().next()}),
-        LRSet({p_to_l.next().next(), l_to_lp.next()}),
-        LRSet({p_to_l.next().next().next()}),
+        LR0Set({start_item}),
+        LR0Set({p_to_l.next(), p_to_paren.next()}),
+        LR0Set({start_item.next(), l_to_lp.next()}),
+        LR0Set({l_to_p.next()}),
+        LR0Set({l_to_lp.next().next()}),
+        LR0Set({p_to_paren.next().next()}),
+        LR0Set({p_to_l.next().next(), l_to_lp.next()}),
+        LR0Set({p_to_l.next().next().next()}),
     )
 
     expected_transitions: Transitions = {

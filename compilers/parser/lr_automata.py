@@ -2,9 +2,9 @@ from collections import defaultdict, deque
 from typing import Iterable
 
 from compilers.grammar.grammar import Grammar
-from compilers.grammar.symbols import Symbol, is_nonterminal
+from compilers.grammar.symbols import Symbol
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LR0Set, LRSet
+from compilers.parser.lr_sets import LR0Set
 
 
 class LRAutomata:
@@ -38,9 +38,7 @@ class LRAutomata:
             current_set = work.popleft()
             self.states.add(current_set)
 
-            transition_sets = compute_transition_sets(
-                closure(current_set, self.grammar)
-            )
+            transition_sets = compute_transition_sets(current_set.closure(self.grammar))
             for symbol, transition_set in transition_sets:
                 self._transitions[(current_set, symbol)] = transition_set
                 if transition_set not in self.states:
@@ -61,7 +59,7 @@ def goto(lr_set: LR0Set, symbol: Symbol) -> LR0Set:
         for item in lr_set
         if not item.complete and item.next_symbol == symbol
     )
-    return LRSet(kernel)
+    return LR0Set(kernel)
 
 
 def get_transition_symbols(
@@ -75,25 +73,6 @@ def get_transition_symbols(
             transition_symbols[item.next_symbol].append(item)
 
     return transition_symbols.items()
-
-
-def closure(lr_set: LR0Set, g: Grammar) -> LR0Set:
-    previous_set: LR0Set | None = None
-    current_set = lr_set
-
-    while previous_set is None or previous_set.nonkernel != current_set.nonkernel:
-        nonkernel_items = set(current_set.nonkernel)
-
-        for item in current_set:
-            if not item.complete and is_nonterminal(nonterminal := item.next_symbol):
-                production = g.get_production(nonterminal)
-                for line in production.derivations:
-                    nonkernel_items.add(LRItem(line))
-
-        previous_set = current_set
-        current_set = LRSet(lr_set.kernel, frozenset(nonkernel_items))
-
-    return current_set
 
 
 def get_initial_lr_item(g: Grammar) -> LRItem:

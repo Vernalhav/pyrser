@@ -1,15 +1,20 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import AbstractSet, Generic, Iterable, Iterator, TypeVar, overload
 
-from compilers.parser.lr_items import LRItem
+from typing_extensions import Self
+
+from compilers.grammar.grammar import Grammar
+from compilers.grammar.symbols import is_nonterminal
+from compilers.parser.lr_items import LR1Item, LRItem
 
 LRItemType = TypeVar("LRItemType", bound=LRItem)
 
 
 @dataclass(frozen=True)
-class LRSet(Generic[LRItemType]):
+class LRSet(Generic[LRItemType], ABC):
     _KERNEL_FIELD_NAME = "_kernel"
     _NONKERNEL_FIELD_NAME = "_nonkernel"
 
@@ -61,5 +66,32 @@ class LRSet(Generic[LRItemType]):
         kernel_lines = (str(item).strip() for item in self.kernel)
         return ", ".join(kernel_lines)
 
+    @abstractmethod
+    def closure(self, g: Grammar) -> Self:
+        pass
 
-LR0Set = LRSet[LRItem]
+
+class LR0Set(LRSet[LRItem]):
+    def closure(self, g: Grammar) -> LR0Set:
+        previous_set: LR0Set | None = None
+        current_set = self
+
+        while previous_set is None or previous_set.nonkernel != current_set.nonkernel:
+            nonkernel_items = set(current_set.nonkernel)
+
+            for item in current_set:
+                if not item.complete and is_nonterminal(
+                    nonterminal := item.next_symbol
+                ):
+                    production = g.get_production(nonterminal)
+                    for line in production.derivations:
+                        nonkernel_items.add(LRItem(line))
+
+            previous_set = current_set
+            current_set = LR0Set(self.kernel, frozenset(nonkernel_items))
+
+        return current_set
+
+
+class LR1Set(LRSet[LR1Item]):
+    pass
