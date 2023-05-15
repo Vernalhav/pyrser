@@ -34,7 +34,7 @@ class LRItem:
     def tail(self) -> Chain:
         return self.production.derivation[self.stack_position :]
 
-    def next(self: Self) -> Self:
+    def next(self) -> Self:
         if self.complete:
             raise ValueError(
                 "Cannot advance an LR Item that is at the end of the production"
