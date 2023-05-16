@@ -27,7 +27,7 @@ class Grammar:
         self._productions = {
             production.nonterminal: production for production in productions
         }
-        self._first_sets = {symbol: FirstSet() for symbol in self.symbols}
+        self._first_sets = {symbol: FirstSet() for symbol in self.nonterminals}
         self._follow_sets = {
             nonterminal: FollowSet() for nonterminal in self.nonterminals
         }
@@ -39,10 +39,10 @@ class Grammar:
     def get_production(self, nonterminal: Nonterminal) -> Production:
         return self._productions[nonterminal]
 
-    def get_first(self, derivation: Nonterminal | Chain) -> FirstSet:
+    def get_first(self, derivation: Symbol | Chain) -> FirstSet:
         if isinstance(derivation, Iterable):
             return self._get_first_from_chain(derivation)
-        return self._first_sets[derivation]
+        return self._get_first_from_symbol(derivation)
 
     def get_follow(self, nonterminal: Nonterminal) -> FollowSet:
         return self._follow_sets[nonterminal]
@@ -103,33 +103,54 @@ class Grammar:
         changed = True
         while changed:
             changed = False
-            for symbol in self.symbols:
-                changed |= self._update_first(symbol)
+            for nonterminal in self.nonterminals:
+                changed |= self._update_first(nonterminal)
 
-    def _update_first(self, symbol: Symbol) -> bool:
+    def _update_first(self, nonterminal: Nonterminal) -> bool:
         """
-        Updates `symbol`'s first set with a single pass.
+        Updates `nonterminal`'s first set with a single pass.
         Returns whether new symbols were added.
         """
-        previous_first_set = self._first_sets[symbol]
-        updated_first_set = self._get_first_pass(symbol)
-        self._first_sets[symbol] = updated_first_set
+        previous_first_set = self._first_sets[nonterminal]
+        updated_first_set = self._get_first_pass(nonterminal)
+        self._first_sets[nonterminal] = updated_first_set
         return updated_first_set != previous_first_set
 
-    def _get_first_pass(self, symbol: Symbol) -> FirstSet:
+    def _get_first_pass(self, nonterminal: Nonterminal) -> FirstSet:
         """
-        Performs a single scan over `symbol`'s derivations,
+        Performs a single scan over `nonterminal`'s derivations,
         returning its current First set.
         """
         first = FirstSet()
+        for _, derivation in self.get_production(nonterminal).derivations:
+            derivation_first = self._get_first_from_chain(derivation)
+            first.update(derivation_first)
+        return first
 
-        if is_terminal(symbol):
-            first.add(symbol)
-
+    def _is_nullable(self, symbol: Symbol) -> bool:
         if is_nonterminal(symbol):
-            for _, derivation in self.get_production(symbol).derivations:
-                derivation_first = self._get_first_from_chain(derivation)
-                first.update(derivation_first)
+            return self._first_sets[symbol].nullable or (
+                self.get_production(symbol).nullable
+            )
+        # TODO: Check if Symbol is the empty string?
+        return False
+
+    def _get_first_from_symbol(self, symbol: Symbol) -> FirstSet:
+        if is_nonterminal(symbol):
+            return self._first_sets[symbol]
+        if is_terminal(symbol):
+            return FirstSet({symbol})
+        raise TypeError(f"{symbol} is not a symbol or chain")
+
+    def _get_first_from_chain(self, chain: Chain) -> FirstSet:
+        first = FirstSet()
+        for symbol in chain:
+            # Only update with the terminal symbols, don't propagate nullable
+            first.update(self._get_first_from_symbol(symbol).terminals)
+            if not self._is_nullable(symbol):
+                break
+        else:  # If for-loop exits without breaking
+            first.nullable = True
 
         return first
 
@@ -141,23 +162,6 @@ class Grammar:
             for symbol in derivation:
                 if is_nonterminal(symbol) and symbol not in self.nonterminals:
                     raise ValueError(f"Nonterminal {symbol} has no derivation.")
-
-    def _is_nullable(self, symbol: Symbol) -> bool:
-        return self._first_sets[symbol].nullable or (
-            is_nonterminal(symbol) and self.get_production(symbol).nullable
-        )
-
-    def _get_first_from_chain(self, chain: Chain) -> FirstSet:
-        first = FirstSet()
-        for symbol in chain:
-            # Only update with the terminal symbols, don't propagate nullable
-            first.update(self._first_sets[symbol].terminals)
-            if not self._is_nullable(symbol):
-                break
-        else:  # If for-loop exits without breaking
-            first.nullable = True
-
-        return first
 
 
 def get_symbols(
