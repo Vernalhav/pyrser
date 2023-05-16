@@ -156,7 +156,6 @@ class Grammar:
 
     def _validate_grammar(self) -> None:
         # TODO: Check no reserved symbols used
-        # TODO: Ensure only one start symbol
         # TODO: Disallow same nonterminal in multiple productions
         for _, derivation in self.derivations:
             for symbol in derivation:
