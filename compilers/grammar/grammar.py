@@ -139,6 +139,7 @@ class Grammar:
         if is_nonterminal(symbol):
             return self._first_sets[symbol]
         if is_terminal(symbol):
+            # TODO: Check if Symbol is the empty string?
             return FirstSet({symbol})
         raise TypeError(f"{symbol} is not a symbol or chain")
 
