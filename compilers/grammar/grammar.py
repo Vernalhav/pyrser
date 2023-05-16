@@ -1,4 +1,4 @@
-from typing import FrozenSet, Iterable, Iterator
+from typing import Iterable, Iterator
 
 from .first_set import FirstSet
 from .follow_set import FollowSet
@@ -9,9 +9,9 @@ from .terminals import Terminal
 
 
 class Grammar:
-    symbols: FrozenSet[Symbol]
-    terminals: FrozenSet[Terminal]
-    nonterminals: FrozenSet[Nonterminal]
+    symbols: frozenset[Symbol]
+    terminals: frozenset[Terminal]
+    nonterminals: frozenset[Nonterminal]
     start_symbol: Nonterminal
 
     def __init__(
@@ -165,7 +165,7 @@ class Grammar:
 
 def get_symbols(
     productions: Iterable[Production],
-) -> tuple[FrozenSet[Terminal], FrozenSet[Nonterminal]]:
+) -> tuple[frozenset[Terminal], frozenset[Nonterminal]]:
     terminals = frozenset(
         symbol
         for production in productions
