@@ -94,4 +94,23 @@ class LR0Set(LRSet[LRItem]):
 
 
 class LR1Set(LRSet[LR1Item]):
-    pass
+    def closure(self, g: Grammar) -> LR1Set:
+        previous_set: LR1Set | None = None
+        current_set = self
+
+        while previous_set is None or previous_set.nonkernel != current_set.nonkernel:
+            nonkernel_items = set(current_set.nonkernel)
+
+            for item in current_set:
+                if not item.complete and is_nonterminal(
+                    nonterminal := item.next_symbol
+                ):
+                    production = g.get_production(nonterminal)
+                    for lookahead in g.get_first((*item.next().tail, item.lookahead)):
+                        for line in production.derivations:
+                            nonkernel_items.add(LR1Item(line, lookahead))
+
+            previous_set = current_set
+            current_set = LR1Set(self.kernel, frozenset(nonkernel_items))
+
+        return current_set
