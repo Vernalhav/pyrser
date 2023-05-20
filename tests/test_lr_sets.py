@@ -186,3 +186,47 @@ def test_lr1_set_closure_generates_lookaheads() -> None:
         c_to_d_item_c,
         c_to_d_item_d,
     }
+
+
+def test_lr1_set_closure_pointer_grammar() -> None:
+    # S' -> S
+    # S -> L = R | R
+    # L -> *R | id
+    # R -> L
+
+    Sp = Nonterminal("S'")
+    S = Nonterminal("S")
+    L = Nonterminal("L")
+    R = Nonterminal("R")
+    times = Terminal("*")
+    eq = Terminal("=")
+    id = Terminal("id")
+    dummy_symbol = Terminal("#")
+
+    sp_production = Production(Sp, [S])
+    s_production = Production(S, [(L, eq, R), R])
+    l_production = Production(L, [(times, R), id])
+    r_production = Production(R, [L])
+
+    start_item = LR1Item(ProductionLine(Sp, (S,)), dummy_symbol)
+    s_to_l_dummy = LR1Item(ProductionLine(S, (L, eq, R)), dummy_symbol)
+    s_to_r_dummy = LR1Item(ProductionLine(S, (R,)), dummy_symbol)
+    l_to_r_dummy = LR1Item(ProductionLine(L, (times, R)), dummy_symbol)
+    l_to_r_eq = LR1Item(ProductionLine(L, (times, R)), eq)
+    l_to_id_dummy = LR1Item(ProductionLine(L, (id,)), dummy_symbol)
+    l_to_id_eq = LR1Item(ProductionLine(L, (id,)), eq)
+    r_to_l_dummy = LR1Item(ProductionLine(R, (L,)), dummy_symbol)
+
+    g = Grammar((sp_production, s_production, l_production, r_production), Sp)
+
+    lr_set = LR1Set({start_item})
+
+    assert lr_set.closure(g).nonkernel == {
+        s_to_l_dummy,
+        s_to_r_dummy,
+        l_to_r_dummy,
+        l_to_r_eq,
+        l_to_id_dummy,
+        l_to_id_eq,
+        r_to_l_dummy,
+    }
