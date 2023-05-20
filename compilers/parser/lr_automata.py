@@ -24,7 +24,7 @@ class LRAutomata:
         return self._transitions[(state, symbol)]
 
     def _compute_states_and_transitions(self) -> None:
-        if is_augmented(self.grammar) is False:
+        if not is_augmented(self.grammar):
             raise ValueError("Given grammar is not augmented with start production")
 
         self.states = set()
