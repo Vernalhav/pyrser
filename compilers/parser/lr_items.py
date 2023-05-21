@@ -57,4 +57,4 @@ class LR1Item(LRItem):
         return LRItem(self.production, stack_position=self.stack_position)
 
     def __repr__(self) -> str:
-        return f"{super().__repr__()} , {self.lookahead}"
+        return f"{super().__repr__()}, {self.lookahead}"
