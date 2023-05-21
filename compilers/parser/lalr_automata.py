@@ -12,6 +12,25 @@ class LookaheadRelationships(NamedTuple):
     generated: dict[Symbol, dict[Symbol, set[LRItem]]]
     propagated: dict[Symbol, dict[LRItem, set[LRItem]]]
 
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, LookaheadRelationships):
+            return False
+
+        is_equal = True
+        is_equal &= len(value.generated) == len(self.generated)
+        for symbol, generated_lookaheads in self.generated.items():
+            is_equal &= len(generated_lookaheads) == len(value.generated[symbol])
+            for lookahead, items in generated_lookaheads.items():
+                is_equal &= items == value.generated[symbol][lookahead]
+
+        is_equal &= len(value.propagated) == len(self.propagated)
+        for symbol, propagated_lookaheads in self.propagated.items():
+            is_equal &= len(propagated_lookaheads) == len(value.propagated[symbol])
+            for item, items in propagated_lookaheads.items():
+                is_equal &= items == value.propagated[symbol][item]
+
+        return is_equal
+
 
 def determine_lookahead_relationships(
     state: LR0Set, g: Grammar

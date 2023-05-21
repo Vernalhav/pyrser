@@ -55,16 +55,5 @@ def test_lookahead_relationships() -> None:
         },
     )
 
-    generated, propagated = determine_lookahead_relationships(state, g)
-
-    assert len(expected.generated) == len(generated)
-    for symbol, generated_lookaheads in generated.items():
-        assert len(generated_lookaheads) == len(expected.generated[symbol])
-        for lookahead, items in generated_lookaheads.items():
-            assert items == expected.generated[symbol][lookahead]
-
-    assert len(expected.propagated) == len(propagated)
-    for symbol, propagated_lookaheads in propagated.items():
-        assert len(propagated_lookaheads) == len(expected.propagated[symbol])
-        for item, items in propagated_lookaheads.items():
-            assert items == expected.propagated[symbol][item]
+    relationships = determine_lookahead_relationships(state, g)
+    assert relationships == expected
