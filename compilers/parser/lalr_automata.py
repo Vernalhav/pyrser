@@ -8,16 +8,16 @@ from compilers.parser.lr_items import LR1Item, LRItem
 from compilers.parser.lr_sets import LR0Set, LR1Set
 
 
-class LookaheadRelationship(NamedTuple):
+class LookaheadRelationships(NamedTuple):
     generated: dict[Symbol, dict[Symbol, set[LRItem]]]
     propagated: dict[Symbol, dict[LRItem, set[LRItem]]]
 
 
-def determine_lookahead_relationship(
+def determine_lookahead_relationships(
     state: LR0Set, g: Grammar
-) -> LookaheadRelationship:
-    dummy = Terminal("#")
-    relationships = LookaheadRelationship(
+) -> LookaheadRelationships:
+    dummy = Terminal("#")  # TODO: Dynamically change value to not conflict with grammar
+    relationships = LookaheadRelationships(
         propagated=defaultdict(lambda: defaultdict(set)),
         generated=defaultdict(lambda: defaultdict(set)),
     )

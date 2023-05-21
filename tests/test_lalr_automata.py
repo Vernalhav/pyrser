@@ -3,14 +3,14 @@ from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
 from compilers.grammar.terminals import Terminal
 from compilers.parser.lalr_automata import (
-    LookaheadRelationship,
-    determine_lookahead_relationship,
+    LookaheadRelationships,
+    determine_lookahead_relationships,
 )
 from compilers.parser.lr_items import LRItem
 from compilers.parser.lr_sets import LR0Set
 
 
-def test_lookahead_relationship() -> None:
+def test_lookahead_relationships() -> None:
     # S' -> S
     # S -> L = R | R
     # L -> *R | id
@@ -41,7 +41,7 @@ def test_lookahead_relationship() -> None:
     g = Grammar((sp_production, s_production, l_production, r_production), Sp)
     state = LR0Set({start_item})
 
-    expected = LookaheadRelationship(
+    expected = LookaheadRelationships(
         generated={
             id: {eq: {l_to_id.next()}},
             times: {eq: {l_to_r.next()}},
@@ -55,7 +55,7 @@ def test_lookahead_relationship() -> None:
         },
     )
 
-    generated, propagated = determine_lookahead_relationship(state, g)
+    generated, propagated = determine_lookahead_relationships(state, g)
 
     assert len(expected.generated) == len(generated)
     for symbol, generated_lookaheads in generated.items():
