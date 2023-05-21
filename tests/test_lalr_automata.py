@@ -42,8 +42,8 @@ def test_lookahead_relationships() -> None:
 
     expected = LookaheadRelationships(
         generated={
-            id: {eq: {l_to_id.next()}},
-            times: {eq: {l_to_r.next()}},
+            id: {l_to_id.next(): {eq}},
+            times: {l_to_r.next(): {eq}},
         },
         propagated={
             S: {start_item: {start_item.next()}},

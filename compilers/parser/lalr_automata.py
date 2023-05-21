@@ -9,7 +9,7 @@ from compilers.parser.lr_sets import LR0Set, LR1Set
 
 
 class LookaheadRelationships(NamedTuple):
-    generated: dict[Symbol, dict[Symbol, set[LRItem]]]
+    generated: dict[Symbol, dict[LRItem, set[Symbol]]]
     propagated: dict[Symbol, dict[LRItem, set[LRItem]]]
 
     def __eq__(self, value: object) -> bool:
@@ -20,8 +20,8 @@ class LookaheadRelationships(NamedTuple):
         is_equal &= len(value.generated) == len(self.generated)
         for symbol, generated_lookaheads in self.generated.items():
             is_equal &= len(generated_lookaheads) == len(value.generated[symbol])
-            for lookahead, items in generated_lookaheads.items():
-                is_equal &= items == value.generated[symbol][lookahead]
+            for lookahead, symbols in generated_lookaheads.items():
+                is_equal &= symbols == value.generated[symbol][lookahead]
 
         is_equal &= len(value.propagated) == len(self.propagated)
         for symbol, propagated_lookaheads in self.propagated.items():
@@ -52,6 +52,6 @@ def determine_lookahead_relationships(
             if item.lookahead == dummy:
                 relationships.propagated[next_symbol][kernel_item].add(next_item)
             else:
-                relationships.generated[next_symbol][item.lookahead].add(next_item)
+                relationships.generated[next_symbol][next_item].add(item.lookahead)
 
     return relationships
