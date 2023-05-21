@@ -35,7 +35,6 @@ def test_lookahead_relationships() -> None:
     l_to_r = LRItem(ProductionLine(L, (times, R)))
     l_to_r = LRItem(ProductionLine(L, (times, R)))
     l_to_id = LRItem(ProductionLine(L, (id,)))
-    l_to_id = LRItem(ProductionLine(L, (id,)))
     r_to_l = LRItem(ProductionLine(R, (L,)))
 
     g = Grammar((sp_production, s_production, l_production, r_production), Sp)
