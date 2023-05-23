@@ -4,8 +4,7 @@ from typing import NamedTuple
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.symbols import Symbol
 from compilers.grammar.terminals import Terminal
-from compilers.parser.lr_items import LR1Item, LRItem
-from compilers.parser.lr_sets import LR0Set, LR1Set
+from compilers.parser.lr_items import LRItem
 
 
 class LookaheadRelationships(NamedTuple):
@@ -42,7 +41,7 @@ def determine_lookahead_relationships(
     )
 
     for kernel_item in state.kernel:
-        closed_set = LR1Set({LR1Item(kernel_item.production, dummy)}).closure(g)
+        closed_set = LR1Set({kernel_item.to_lr1(dummy)}).closure(g)
         for item in closed_set:
             if item.complete:
                 continue

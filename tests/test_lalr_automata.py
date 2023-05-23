@@ -38,7 +38,7 @@ def test_lookahead_relationships() -> None:
     r_to_l = LRItem(ProductionLine(R, (L,)))
 
     g = Grammar((sp_production, s_production, l_production, r_production), Sp)
-    state = LR0Set({start_item})
+    state = LR0Set({start_item, s_to_l.next()})
 
     expected = LookaheadRelationships(
         generated={
@@ -51,6 +51,7 @@ def test_lookahead_relationships() -> None:
             R: {start_item: {s_to_r.next()}},
             times: {start_item: {l_to_r.next()}},
             id: {start_item: {l_to_id.next()}},
+            eq: {s_to_l.next(): {s_to_l.next().next()}},
         },
     )
 

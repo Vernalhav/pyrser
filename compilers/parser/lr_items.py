@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 from dataclasses import dataclass, field
 
@@ -40,6 +42,9 @@ class LRItem:
                 "Cannot advance an LR Item that is at the end of the production"
             )
         return dataclasses.replace(self, stack_position=self.stack_position + 1)
+
+    def to_lr1(self, lookahead: Terminal) -> LR1Item:
+        return LR1Item(self.production, lookahead, stack_position=self.stack_position)
 
     def __repr__(self) -> str:
         head = "".join(
