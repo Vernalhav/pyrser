@@ -1,32 +1,32 @@
-from collections import defaultdict
 from typing import NamedTuple
 
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.symbols import Symbol
 from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_items import LRItem
+from compilers.utils import GroupedDefaultDict, GroupedDict
+
+GeneratedLookaheads = GroupedDict[Symbol, LRItem, set[Symbol]]
+PropagatedLookaheads = GroupedDict[Symbol, LRItem, set[LRItem]]
+
 
 
 class LookaheadRelationships(NamedTuple):
-    generated: dict[Symbol, dict[LRItem, set[Symbol]]]
-    propagated: dict[Symbol, dict[LRItem, set[LRItem]]]
+    generated: GeneratedLookaheads
+    propagated: PropagatedLookaheads
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, LookaheadRelationships):
             return False
 
         is_equal = True
-        is_equal &= len(value.generated) == len(self.generated)
-        for symbol, generated_lookaheads in self.generated.items():
-            is_equal &= len(generated_lookaheads) == len(value.generated[symbol])
-            for lookahead, symbols in generated_lookaheads.items():
-                is_equal &= symbols == value.generated[symbol][lookahead]
+        is_equal &= value.generated.flat_len() == self.generated.flat_len()
+        for symbol, lookahead, symbols in self.generated.flatten():
+            is_equal &= symbols == value.generated[symbol][lookahead]
 
-        is_equal &= len(value.propagated) == len(self.propagated)
-        for symbol, propagated_lookaheads in self.propagated.items():
-            is_equal &= len(propagated_lookaheads) == len(value.propagated[symbol])
-            for item, items in propagated_lookaheads.items():
-                is_equal &= items == value.propagated[symbol][item]
+        is_equal &= value.propagated.flat_len() == self.propagated.flat_len()
+        for symbol, item, items in self.propagated.flatten():
+            is_equal &= items == value.propagated[symbol][item]
 
         return is_equal
 
@@ -36,8 +36,8 @@ def determine_lookahead_relationships(
 ) -> LookaheadRelationships:
     dummy = Terminal("#")  # TODO: Dynamically change value to not conflict with grammar
     relationships = LookaheadRelationships(
-        propagated=defaultdict(lambda: defaultdict(set)),
-        generated=defaultdict(lambda: defaultdict(set)),
+        propagated=GroupedDefaultDict(set),
+        generated=GroupedDefaultDict(set),
     )
 
     for kernel_item in state.kernel:

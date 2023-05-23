@@ -6,8 +6,9 @@ from compilers.parser.lalr_automata import (
     LookaheadRelationships,
     determine_lookahead_relationships,
 )
-from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LR0Set
+from compilers.parser.lr_items import LR1Item, LRItem
+from compilers.parser.lr_sets import LR0Set, LR1Set
+from compilers.utils import GroupedDict
 
 
 def test_lookahead_relationships() -> None:
@@ -41,18 +42,22 @@ def test_lookahead_relationships() -> None:
     state = LR0Set({start_item, s_to_l.next()})
 
     expected = LookaheadRelationships(
-        generated={
-            id: {l_to_id.next(): {eq}},
-            times: {l_to_r.next(): {eq}},
-        },
-        propagated={
-            S: {start_item: {start_item.next()}},
-            L: {start_item: {s_to_l.next(), r_to_l.next()}},
-            R: {start_item: {s_to_r.next()}},
-            times: {start_item: {l_to_r.next()}},
-            id: {start_item: {l_to_id.next()}},
-            eq: {s_to_l.next(): {s_to_l.next().next()}},
-        },
+        generated=GroupedDict(
+            {
+                id: {l_to_id.next(): {eq}},
+                times: {l_to_r.next(): {eq}},
+            }
+        ),
+        propagated=GroupedDict(
+            {
+                S: {start_item: {start_item.next()}},
+                L: {start_item: {s_to_l.next(), r_to_l.next()}},
+                R: {start_item: {s_to_r.next()}},
+                times: {start_item: {l_to_r.next()}},
+                id: {start_item: {l_to_id.next()}},
+                eq: {s_to_l.next(): {s_to_l.next().next()}},
+            }
+        ),
     )
 
     relationships = determine_lookahead_relationships(state, g)
