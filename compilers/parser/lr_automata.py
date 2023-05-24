@@ -21,6 +21,11 @@ class LRAutomata:
     def transition_count(self) -> int:
         return len(self._transitions)
 
+    @property
+    def transitions(self) -> Iterable[tuple[LR0Set, Symbol, LR0Set]]:
+        for (start, symbol), end in self._transitions.items():
+            yield start, symbol, end
+
     def get_transition(self, state: LR0Set, symbol: Symbol) -> LR0Set:
         return self._transitions[(state, symbol)]
 
