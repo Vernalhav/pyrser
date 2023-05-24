@@ -16,7 +16,7 @@ class ProductionLine(NamedTuple):
 class Production:
     nonterminal: Nonterminal
     nullable: bool
-    derivations: Sequence[ProductionLine]
+    derivations: Sequence[ProductionLine]  # Same order as given in construction
 
     def __init__(
         self,
@@ -24,7 +24,7 @@ class Production:
         derivations: Iterable[Chain | Symbol],
     ) -> None:
         self.nonterminal = nonterminal
-        tuple_derivations = set(
+        tuple_derivations = (
             derivation if isinstance(derivation, tuple) else (derivation,)
             for derivation in derivations
         )
@@ -32,6 +32,9 @@ class Production:
             ProductionLine(self.nonterminal, derivation)
             for derivation in tuple_derivations
         )
+
+        if len(set(self.derivations)) != len(self.derivations):
+            raise ValueError("Cannot create a production with duplicate derivations")
 
         if len(self.derivations) == 0:
             raise ValueError("Cannot create a production with no derivations")

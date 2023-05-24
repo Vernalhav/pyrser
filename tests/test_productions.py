@@ -43,4 +43,12 @@ def test_empty_production_raises_exception() -> None:
     A = Nonterminal("A")
 
     with pytest.raises(ValueError):
-        Production(A, ())
+        Production(A, [])
+
+
+def test_duplicate_derivations_raises_exception() -> None:
+    A = Nonterminal("A")
+    a = Terminal("a")
+
+    with pytest.raises(ValueError):
+        Production(A, [a, a, ()])
