@@ -56,8 +56,8 @@ def test_cannot_advance_null_production() -> None:
 
 def test_items_from_production_multiple_lines() -> None:
     A = Nonterminal("A")
-    a = Nonterminal("a")
-    b = Nonterminal("b")
+    a = Terminal("a")
+    b = Terminal("b")
 
     production = Production(A, [a, (b, a)])
     expected = (
