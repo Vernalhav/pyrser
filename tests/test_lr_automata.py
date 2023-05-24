@@ -91,6 +91,7 @@ def test_lr_sets_creation_small_grammar() -> None:
     }
 
     assert lr_automata.states == set(states)
+    assert lr_automata.start_state == states[0]
     assert len(expected_transitions) == lr_automata.transition_count
     for (start, symbol), end in expected_transitions.items():
         assert lr_automata.get_transition(start, symbol) == end
@@ -147,6 +148,7 @@ def test_lr_sets_creation_recursive_grammar() -> None:
     }
 
     assert lr_automata.states == set(states)
+    assert lr_automata.start_state == states[0]
     assert len(expected_transitions) == lr_automata.transition_count
     for (start, symbol), end in expected_transitions.items():
         assert lr_automata.get_transition(start, symbol) == end

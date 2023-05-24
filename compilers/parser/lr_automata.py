@@ -10,6 +10,7 @@ from compilers.parser.lr_sets import LR0Set
 class LRAutomata:
     grammar: Grammar
     states: set[LR0Set]
+    start_state: LR0Set
     _transitions: dict[tuple[LR0Set, Symbol], LR0Set]
 
     def __init__(self, g: Grammar) -> None:
@@ -32,7 +33,8 @@ class LRAutomata:
         work: deque[LR0Set] = deque()
 
         start_item = get_initial_lr_item(self.grammar)
-        work.append(LR0Set(frozenset((start_item,))))
+        self.start_state = LR0Set({start_item})
+        work.append(self.start_state)
 
         while len(work) > 0:
             current_set = work.popleft()
