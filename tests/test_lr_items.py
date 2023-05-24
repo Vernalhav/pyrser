@@ -1,8 +1,8 @@
 import pytest
 
 from compilers.grammar import Nonterminal, Terminal
-from compilers.grammar.productions import Production
-from compilers.parser.lr_items import LR1Item, LRItem
+from compilers.grammar.productions import Production, ProductionLine
+from compilers.parser.lr_items import LR1Item, LRItem, items_from_production
 
 
 def test_lr_items_value_semantics() -> None:
@@ -52,6 +52,31 @@ def test_cannot_advance_null_production() -> None:
 
     with pytest.raises(ValueError):
         item.next()
+
+
+def test_items_from_production_multiple_lines() -> None:
+    A = Nonterminal("A")
+    a = Nonterminal("a")
+    b = Nonterminal("b")
+
+    production = Production(A, [a, (b, a)])
+    expected = (
+        LRItem(ProductionLine(A, (a,))),
+        LRItem(ProductionLine(A, (b, a))),
+    )
+
+    a_to_a, a_to_ba = items_from_production(production)
+    assert a_to_a, a_to_ba == expected
+
+
+def test_items_from_null_production() -> None:
+    A = Nonterminal("A")
+
+    production = Production(A, [()])
+    expected = LRItem(ProductionLine(A, ()))
+
+    (a_to_empty,) = items_from_production(production)
+    assert a_to_empty == expected
 
 
 def test_lr1_items_value_semantics() -> None:

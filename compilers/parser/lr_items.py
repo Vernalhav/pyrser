@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
+from typing import Sequence
 
 from typing_extensions import Self
 
 from compilers.grammar import Terminal
-from compilers.grammar.productions import Chain, ProductionLine
+from compilers.grammar.productions import Chain, Production, ProductionLine
 from compilers.grammar.symbols import Symbol
 
 
@@ -63,3 +64,10 @@ class LR1Item(LRItem):
 
     def __repr__(self) -> str:
         return f"{super().__repr__()}, {self.lookahead}"
+
+
+def items_from_production(production: Production) -> Sequence[LRItem]:
+    """Returns a Sequence of LR0 items with the dot at the
+    start position in the same order of the production lines
+    in `production`."""
+    return tuple(LRItem(line) for line in production.derivations)
