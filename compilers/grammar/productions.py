@@ -41,6 +41,9 @@ class Production:
 
         self.nullable = any(len(derivation) == 0 for _, derivation in self.derivations)
 
+    def __getitem__(self, index: int) -> ProductionLine:
+        return self.derivations[index]
+
     def __repr__(self) -> str:
         def format_derivation(derivation: Chain) -> str:
             if len(derivation) == 0:
