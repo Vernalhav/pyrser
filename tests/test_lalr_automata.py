@@ -111,4 +111,5 @@ def test_lalr_automata_creation_pointer_grammar() -> None:
 
     # Assumes transitions are OK since they should be copied from LR0 automata
     assert automata.transition_count == LRAutomata(g).transition_count
+    assert automata.start_state == states[0]
     assert automata.states == set(states)
