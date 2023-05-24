@@ -65,18 +65,32 @@ def test_items_from_production_multiple_lines() -> None:
         LRItem(ProductionLine(A, (b, a))),
     )
 
-    a_to_a, a_to_ba = items_from_production(production)
-    assert a_to_a, a_to_ba == expected
+    assert expected == items_from_production(production)
 
 
 def test_items_from_null_production() -> None:
     A = Nonterminal("A")
 
     production = Production(A, [()])
-    expected = LRItem(ProductionLine(A, ()))
+    expected = (LRItem(ProductionLine(A, ())),)
 
-    (a_to_empty,) = items_from_production(production)
-    assert a_to_empty == expected
+    assert expected == items_from_production(production)
+
+
+def test_lr1_items_from_production() -> None:
+    A = Nonterminal("A")
+    a = Terminal("a")
+    b = Terminal("b")
+    end_of_chain = Terminal("#")
+
+    production = Production(A, [a, (b, a), ()])
+    expected = (
+        LR1Item(ProductionLine(A, (a,)), end_of_chain),
+        LR1Item(ProductionLine(A, (b, a)), end_of_chain),
+        LR1Item(ProductionLine(A, ()), end_of_chain),
+    )
+
+    assert expected == items_from_production(production, end_of_chain)
 
 
 def test_lr1_items_value_semantics() -> None:

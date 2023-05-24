@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Sequence, overload
 
 from typing_extensions import Self
 
@@ -66,8 +66,28 @@ class LR1Item(LRItem):
         return f"{super().__repr__()}, {self.lookahead}"
 
 
+@overload
 def items_from_production(production: Production) -> Sequence[LRItem]:
     """Returns a Sequence of LR0 items with the dot at the
     start position in the same order of the production lines
     in `production`."""
-    return tuple(LRItem(line) for line in production.derivations)
+    pass
+
+
+@overload
+def items_from_production(
+    production: Production, lookahead: Terminal
+) -> Sequence[LR1Item]:
+    """Returns a Sequence of LR1 items with the dot at the
+    start position in the same order of the production lines
+    in `production`. All items will have `lookahead` as their
+    lookahead"""
+    pass
+
+
+def items_from_production(
+    production: Production, lookahead: Terminal | None = None
+) -> Sequence[LRItem] | Sequence[LR1Item]:
+    if lookahead is None:
+        return tuple(LRItem(line) for line in production.derivations)
+    return tuple(LR1Item(line, lookahead) for line in production.derivations)
