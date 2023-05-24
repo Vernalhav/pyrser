@@ -6,6 +6,7 @@ from compilers.parser.lalr_automata import (
     LALRAutomata,
     LookaheadRelationships,
     determine_lookahead_relationships,
+    get_end_of_chain,
 )
 from compilers.parser.lr_items import LR1Item, LRItem
 from compilers.parser.lr_sets import LR0Set, LR1Set
@@ -78,12 +79,14 @@ def test_lalr_automata_creation_pointer_grammar() -> None:
     times = Terminal("*")
     eq = Terminal("=")
     id = Terminal("id")
-    end_of_chain = Terminal("$")
 
     sp_production = Production(Sp, [S])
     s_production = Production(S, [(L, eq, R), R])
     l_production = Production(L, [(times, R), id])
     r_production = Production(R, [L])
+
+    g = Grammar((sp_production, s_production, l_production, r_production), Sp)
+    end_of_chain = get_end_of_chain(g)
 
     start_item = LR1Item(ProductionLine(Sp, (S,)), end_of_chain)
     s_to_l = LR1Item(ProductionLine(S, (L, eq, R)), end_of_chain)
