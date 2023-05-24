@@ -1,4 +1,5 @@
 from collections import defaultdict
+from collections.abc import Mapping
 from typing import Any, Callable, Generic, Iterable, TypeVar, overload
 
 T = TypeVar("T")
@@ -9,6 +10,7 @@ def find_first(items: Iterable[T], predicate: Predicate[T]) -> T | None:
     return next((item for item in items if predicate(item)), None)
 
 
+K = TypeVar("K")
 K1 = TypeVar("K1")
 K2 = TypeVar("K2")
 V = TypeVar("V")
@@ -80,3 +82,9 @@ class GroupedDefaultDict(Generic[K1, K2, V], GroupedDict[K1, K2, V]):
         if key not in self:
             super().__setitem__(key, defaultdict(self.default_factory))
         return super().__getitem__(key)
+
+
+def flatten(d: Mapping[K, Iterable[V]], /) -> Iterable[tuple[K, V]]:
+    for key, iterable in d.items():
+        for x in iterable:
+            yield key, x
