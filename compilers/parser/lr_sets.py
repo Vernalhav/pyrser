@@ -130,3 +130,6 @@ class LR1Set(LRSet[LR1Item]):
         lines.append(header)
 
         return "\n".join(lines)
+
+
+StateType = TypeVar("StateType", bound=LRSet)
