@@ -4,7 +4,7 @@ from compilers.grammar.productions import Production, ProductionLine
 from compilers.grammar.symbols import Symbol
 from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_automata import LRAutomata, get_transition_symbols, goto
-from compilers.parser.lr_items import LRItem
+from compilers.parser.lr_items import LRItem, items_from_production
 from compilers.parser.lr_sets import LR0Set
 
 Transitions = dict[tuple[LR0Set, Symbol], LR0Set]
@@ -21,14 +21,14 @@ def test_symbol_grouping_includes_nonkernel() -> None:
     a = Terminal("a")
     b = Terminal("b")
 
-    s_to_a_item = LRItem(ProductionLine(S, (a, A))).next()
-    a_to_b_item = LRItem(ProductionLine(A, (B,)))
-    b_to_b_item = LRItem(ProductionLine(B, (b,)))
-    b_to_aa_item = LRItem(ProductionLine(B, (A, a)))
+    s_to_a = LRItem(ProductionLine(S, (a, A))).next()
+    a_to_b = LRItem(ProductionLine(A, (B,)))
+    b_to_b = LRItem(ProductionLine(B, (b,)))
+    b_to_aa = LRItem(ProductionLine(B, (A, a)))
 
-    lr_set = LR0Set({s_to_a_item}, {a_to_b_item, b_to_aa_item, b_to_b_item})
+    lr_set = LR0Set({s_to_a}, {a_to_b, b_to_aa, b_to_b})
 
-    expected = {A: {s_to_a_item, b_to_aa_item}, B: {a_to_b_item}, b: {b_to_b_item}}
+    expected = {A: {s_to_a, b_to_aa}, B: {a_to_b}, b: {b_to_b}}
     received = list(get_transition_symbols(lr_set))
 
     assert len(expected) == len(received)
@@ -47,15 +47,13 @@ def test_goto_state_creation() -> None:
     a = Terminal("a")
     b = Terminal("b")
 
-    s_to_a_item = LRItem(ProductionLine(S, (A,)))
-    s_to_ba_item = LRItem(ProductionLine(S, (B, A)))
-    b_to_a_item = LRItem(ProductionLine(B, (A,)))
-    b_to_aab_item = LRItem(ProductionLine(B, (a, A, b))).next()
+    s_to_a = LRItem(ProductionLine(S, (A,)))
+    s_to_ba = LRItem(ProductionLine(S, (B, A)))
+    b_to_a = LRItem(ProductionLine(B, (A,)))
+    b_to_aab = LRItem(ProductionLine(B, (a, A, b))).next()
 
-    lr_set = LR0Set({b_to_aab_item}, {s_to_ba_item, b_to_a_item, s_to_a_item})
-    assert goto(lr_set, A) == LR0Set(
-        {s_to_a_item.next(), b_to_aab_item.next(), b_to_a_item.next()}
-    )
+    lr_set = LR0Set({b_to_aab}, {s_to_ba, b_to_a, s_to_a})
+    assert goto(lr_set, A) == LR0Set({s_to_a.next(), b_to_aab.next(), b_to_a.next()})
 
 
 def test_lr_sets_creation_small_grammar() -> None:
@@ -67,20 +65,19 @@ def test_lr_sets_creation_small_grammar() -> None:
     a = Terminal("a")
     b = Terminal("b")
 
-    start_production = Production(Sp, [S])
-    s_production = Production(S, [a, b])
+    sp_prod = Production(Sp, [S])
+    s_prod = Production(S, [a, b])
 
-    start_item = LRItem(ProductionLine(Sp, (S,)))
-    s_to_a_item = LRItem(ProductionLine(S, (a,)))
-    s_to_b_item = LRItem(ProductionLine(S, (b,)))
+    (start_item,) = items_from_production(sp_prod)
+    s_to_a, s_to_b = items_from_production(s_prod)
 
-    g = Grammar((start_production, s_production), Sp)
+    g = Grammar((sp_prod, s_prod), Sp)
     lr_automata = LRAutomata(g)
 
     states = (
         LR0Set({start_item}),
-        LR0Set({s_to_a_item.next()}),
-        LR0Set({s_to_b_item.next()}),
+        LR0Set({s_to_a.next()}),
+        LR0Set({s_to_b.next()}),
         LR0Set({start_item.next()}),
     )
 
@@ -108,17 +105,15 @@ def test_lr_sets_creation_recursive_grammar() -> None:
     open = Terminal("(")
     close = Terminal(")")
 
-    start_production = Production(S, [L])
-    p_production = Production(P, [(open, L, close), (open, close)])
-    l_production = Production(L, [(L, P), P])
+    start_prod = Production(S, [L])
+    p_prod = Production(P, [(open, L, close), (open, close)])
+    l_prod = Production(L, [(L, P), P])
 
-    start_item = LRItem(ProductionLine(S, (L,)))
-    p_to_l = LRItem(ProductionLine(P, (open, L, close)))
-    p_to_paren = LRItem(ProductionLine(P, (open, close)))
-    l_to_lp = LRItem(ProductionLine(L, (L, P)))
-    l_to_p = LRItem(ProductionLine(L, (P,)))
+    (start_item,) = items_from_production(start_prod)
+    p_to_l, p_to_paren = items_from_production(p_prod)
+    l_to_lp, l_to_p = items_from_production(l_prod)
 
-    g = Grammar((start_production, p_production, l_production), S)
+    g = Grammar((start_prod, p_prod, l_prod), S)
     lr_automata = LRAutomata(g)
 
     states = (
