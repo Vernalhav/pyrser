@@ -1,9 +1,7 @@
 from itertools import chain
 
 from compilers.grammar.grammar import Grammar
-from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production
-from compilers.grammar.terminals import Terminal
 from compilers.parser.lalr_automata import (
     LALRAutomata,
     LookaheadRelationships,
@@ -14,6 +12,7 @@ from compilers.parser.lr_automata import LRAutomata
 from compilers.parser.lr_items import items_from_production
 from compilers.parser.lr_sets import LR0Set, LR1Set
 from compilers.utils import GroupedDict
+from tests.utils import get_nonterminals, get_terminals
 
 
 def test_lookahead_relationships() -> None:
@@ -22,13 +21,8 @@ def test_lookahead_relationships() -> None:
     # L -> *R | id
     # R -> L
 
-    Sp = Nonterminal("S'")
-    S = Nonterminal("S")
-    L = Nonterminal("L")
-    R = Nonterminal("R")
-    times = Terminal("*")
-    eq = Terminal("=")
-    id = Terminal("id")
+    Sp, S, L, R = get_nonterminals("S'", "S", "L", "R")
+    times, eq, id = get_terminals("*", "=", "id")
 
     sp_prod = Production(Sp, [S])
     s_prod = Production(S, [(L, eq, R), R])
@@ -72,13 +66,8 @@ def test_lalr_automata_creation_pointer_grammar() -> None:
     # L -> *R | id
     # R -> L
 
-    Sp = Nonterminal("S'")
-    S = Nonterminal("S")
-    L = Nonterminal("L")
-    R = Nonterminal("R")
-    times = Terminal("*")
-    eq = Terminal("=")
-    id = Terminal("id")
+    Sp, S, L, R = get_nonterminals("S'", "S", "L", "R")
+    times, eq, id = get_terminals("*", "=", "id")
 
     sp_prod = Production(Sp, [S])
     s_prod = Production(S, [(L, eq, R), R])
@@ -123,16 +112,8 @@ def test_lalr_automata_creation_expression_grammar() -> None:
     # T -> T * F | F
     # F -> (E) | num
 
-    # TODO: get_terminals(iter...) to sumplify tests
-    S = Nonterminal("S")
-    E = Nonterminal("E")
-    T = Nonterminal("T")
-    F = Nonterminal("F")
-    plus = Terminal("+")
-    mult = Terminal("*")
-    open = Terminal("(")
-    close = Terminal(")")
-    num = Terminal("num")
+    S, E, T, F = get_nonterminals("S", "E", "T", "F")
+    plus, mult, open, close, num = get_terminals("+", "*", "(", ")", "num")
 
     s_prod = Production(S, [E])
     e_prod = Production(E, [(E, plus, T), T])

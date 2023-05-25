@@ -1,11 +1,10 @@
 from compilers.grammar.grammar import Grammar
-from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
 from compilers.grammar.symbols import Symbol
-from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_automata import LRAutomata, get_transition_symbols, goto
 from compilers.parser.lr_items import LRItem, items_from_production
 from compilers.parser.lr_sets import LR0Set
+from tests.utils import get_nonterminals, get_terminals
 
 Transitions = dict[tuple[LR0Set, Symbol], LR0Set]
 
@@ -15,11 +14,8 @@ def test_symbol_grouping_includes_nonkernel() -> None:
     # A -> B
     # B -> b | Aa
 
-    S = Nonterminal("S")
-    A = Nonterminal("A")
-    B = Nonterminal("B")
-    a = Terminal("a")
-    b = Terminal("b")
+    S, A, B = get_nonterminals("S", "A", "B")
+    a, b = get_terminals("a", "b")
 
     s_to_a = LRItem(ProductionLine(S, (a, A))).next()
     a_to_b = LRItem(ProductionLine(A, (B,)))
@@ -41,11 +37,8 @@ def test_goto_state_creation() -> None:
     # S -> A | BA
     # B -> aAb | A
 
-    S = Nonterminal("S")
-    A = Nonterminal("A")
-    B = Nonterminal("B")
-    a = Terminal("a")
-    b = Terminal("b")
+    S, A, B = get_nonterminals("S", "A", "B")
+    a, b = get_terminals("a", "b")
 
     s_to_a = LRItem(ProductionLine(S, (A,)))
     s_to_ba = LRItem(ProductionLine(S, (B, A)))
@@ -60,10 +53,8 @@ def test_lr_sets_creation_small_grammar() -> None:
     # S' -> S
     # S -> a | b
 
-    Sp = Nonterminal("S'")
-    S = Nonterminal("S")
-    a = Terminal("a")
-    b = Terminal("b")
+    Sp, S = get_nonterminals("S'", "S")
+    a, b = get_terminals("a", "b")
 
     sp_prod = Production(Sp, [S])
     s_prod = Production(S, [a, b])
@@ -99,11 +90,8 @@ def test_lr_sets_creation_recursive_grammar() -> None:
     # L -> LP | P
     # P -> (L) | ()
 
-    S = Nonterminal("S")
-    P = Nonterminal("P")
-    L = Nonterminal("L")
-    open = Terminal("(")
-    close = Terminal(")")
+    S, P, L = get_nonterminals("S", "P", "L")
+    open, close = get_terminals("(", ")")
 
     start_prod = Production(S, [L])
     p_prod = Production(P, [(open, L, close), (open, close)])

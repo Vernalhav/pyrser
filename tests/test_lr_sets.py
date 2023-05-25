@@ -1,18 +1,15 @@
 from compilers.grammar.grammar import Grammar
-from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production, ProductionLine
-from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_items import LR1Item, LRItem
 from compilers.parser.lr_sets import LR0Set, LR1Set
+from tests.utils import get_nonterminals, get_terminals
 
 
 def test_lr_sets_compare_kernel_only() -> None:
-    S_prime = Nonterminal("S'")
-    S = Nonterminal("S")
-    a = Terminal("a")
-    b = Terminal("b")
+    Sp, S = get_nonterminals("S'", "S")
+    a, b = get_terminals("a", "b")
 
-    start_item = LRItem(ProductionLine(S_prime, (S,)))
+    start_item = LRItem(ProductionLine(Sp, (S,)))
     s_to_a_item = LRItem(ProductionLine(S, (a,)))
     s_to_b_item = LRItem(ProductionLine(S, (b,)))
 
@@ -31,13 +28,8 @@ def test_lr0_set_closure_includes_all_kernel_items() -> None:
     # B -> b
     # C -> c
 
-    S = Nonterminal("S")
-    A = Nonterminal("A")
-    B = Nonterminal("B")
-    C = Nonterminal("C")
-    a = Terminal("a")
-    b = Terminal("b")
-    c = Terminal("c")
+    S, A, B, C = get_nonterminals("S", "A", "B", "C")
+    a, b, c = get_terminals("a", "b", "c")
 
     s_production = Production(S, [A])
     a_production = Production(A, [(a, C), B])
@@ -68,13 +60,8 @@ def test_lr0_set_closure_doesnt_propagate_terminal() -> None:
     # B -> b
     # C -> c
 
-    S = Nonterminal("S")
-    A = Nonterminal("A")
-    B = Nonterminal("B")
-    C = Nonterminal("C")
-    a = Terminal("a")
-    b = Terminal("b")
-    c = Terminal("c")
+    S, A, B, C = get_nonterminals("S", "A", "B", "C")
+    a, b, c = get_terminals("a", "b", "c")
 
     s_production = Production(S, [A])
     a_production = Production(A, [(a, C), B])
@@ -97,8 +84,7 @@ def test_lr0_set_closure_creates_empty_item() -> None:
     # S -> A
     # A -> <empty string>
 
-    S = Nonterminal("S")
-    A = Nonterminal("A")
+    S, A = get_nonterminals("S", "A")
 
     s_production = Production(S, [A])
     a_production = Production(A, [()])
@@ -117,15 +103,14 @@ def test_lr1_set_closure_creates_empty_item() -> None:
     # S -> A
     # A -> <empty string>
 
-    S = Nonterminal("S")
-    A = Nonterminal("A")
-    end_marker = Terminal("$")
+    S, A = get_nonterminals("S", "A")
+    (end_of_chain,) = get_terminals("$")
 
     s_production = Production(S, [A])
     a_production = Production(A, [()])
 
-    start_item = LR1Item(ProductionLine(S, (A,)), end_marker)
-    empty_item = LR1Item(ProductionLine(A, ()), end_marker)
+    start_item = LR1Item(ProductionLine(S, (A,)), end_of_chain)
+    empty_item = LR1Item(ProductionLine(A, ()), end_of_chain)
 
     g = Grammar((s_production, a_production), S)
 
@@ -137,9 +122,8 @@ def test_lr1_set_closure_creates_empty_item() -> None:
 def test_lr1_set_closure_doesnt_propagate_terminal() -> None:
     # S -> b
 
-    S = Nonterminal("S")
-    end_marker = Terminal("$")
-    b = Terminal("b")
+    (S,) = get_nonterminals("S")
+    end_marker, b = get_terminals("$", "b")
 
     s_production = Production(S, [b])
 
@@ -157,12 +141,8 @@ def test_lr1_set_closure_generates_lookaheads() -> None:
     # S -> CC
     # C -> cC | d
 
-    Sp = Nonterminal("S'")
-    S = Nonterminal("S")
-    C = Nonterminal("C")
-    c = Terminal("c")
-    d = Terminal("d")
-    end_marker = Terminal("$")
+    Sp, S, C = get_nonterminals("S'", "S", "C")
+    c, d, end_marker = get_terminals("c", "d", "$")
 
     sp_production = Production(Sp, [S])
     s_production = Production(S, [(C, C)])
@@ -194,28 +174,22 @@ def test_lr1_set_closure_pointer_grammar() -> None:
     # L -> *R | id
     # R -> L
 
-    Sp = Nonterminal("S'")
-    S = Nonterminal("S")
-    L = Nonterminal("L")
-    R = Nonterminal("R")
-    times = Terminal("*")
-    eq = Terminal("=")
-    id = Terminal("id")
-    dummy_symbol = Terminal("#")
+    Sp, S, L, R = get_nonterminals("S'", "S", "L", "R")
+    times, eq, id, dummy = get_terminals("*", "=", "id", "#")
 
     sp_production = Production(Sp, [S])
     s_production = Production(S, [(L, eq, R), R])
     l_production = Production(L, [(times, R), id])
     r_production = Production(R, [L])
 
-    start_item = LR1Item(ProductionLine(Sp, (S,)), dummy_symbol)
-    s_to_l_dummy = LR1Item(ProductionLine(S, (L, eq, R)), dummy_symbol)
-    s_to_r_dummy = LR1Item(ProductionLine(S, (R,)), dummy_symbol)
-    l_to_r_dummy = LR1Item(ProductionLine(L, (times, R)), dummy_symbol)
+    start_item = LR1Item(ProductionLine(Sp, (S,)), dummy)
+    s_to_l_dummy = LR1Item(ProductionLine(S, (L, eq, R)), dummy)
+    s_to_r_dummy = LR1Item(ProductionLine(S, (R,)), dummy)
+    l_to_r_dummy = LR1Item(ProductionLine(L, (times, R)), dummy)
     l_to_r_eq = LR1Item(ProductionLine(L, (times, R)), eq)
-    l_to_id_dummy = LR1Item(ProductionLine(L, (id,)), dummy_symbol)
+    l_to_id_dummy = LR1Item(ProductionLine(L, (id,)), dummy)
     l_to_id_eq = LR1Item(ProductionLine(L, (id,)), eq)
-    r_to_l_dummy = LR1Item(ProductionLine(R, (L,)), dummy_symbol)
+    r_to_l_dummy = LR1Item(ProductionLine(R, (L,)), dummy)
 
     g = Grammar((sp_production, s_production, l_production, r_production), Sp)
 
