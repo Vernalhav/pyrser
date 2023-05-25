@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import AbstractSet, Generic, Iterable, Iterator, TypeVar, overload
 
@@ -114,3 +115,18 @@ class LR1Set(LRSet[LR1Item]):
             current_set = LR1Set(self.kernel, frozenset(nonkernel_items))
 
         return current_set
+
+    def __str__(self) -> str:
+        lines = []
+        header = "-" * 20
+
+        items = defaultdict(list)
+        for item in self.kernel:
+            items[item.to_lr0()].append(item.lookahead)
+
+        lines.append(header)
+        for lr0_item, lookaheads in items.items():
+            lines.append(f"{lr0_item} | {', '.join(str(x) for x in lookaheads)}")
+        lines.append(header)
+
+        return "\n".join(lines)
