@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import dataclasses
 from dataclasses import dataclass, field
-from typing import Sequence, overload
+from typing import Iterable, Sequence, overload
 
 from typing_extensions import Self
 
@@ -44,8 +44,24 @@ class LRItem:
             )
         return dataclasses.replace(self, stack_position=self.stack_position + 1)
 
-    def to_lr1(self, lookahead: Terminal) -> LR1Item:
-        return LR1Item(self.production, lookahead, stack_position=self.stack_position)
+    @overload
+    def to_lr1(self, lookaheads: Terminal) -> LR1Item:
+        """Returns an LR1 item with the given lookahead.
+        If `self` is an LR1 item, return a new item with
+        its lookahead replaced."""
+        pass
+
+    @overload
+    def to_lr1(self, lookaheads: Iterable[Terminal]) -> Sequence[LR1Item]:
+        """Returns an LR1 item for each given lookahead."""
+        pass
+
+    def to_lr1(
+        self, lookaheads: Terminal | Iterable[Terminal]
+    ) -> LR1Item | Sequence[LR1Item]:
+        if isinstance(lookaheads, Iterable):
+            return tuple(self.to_lr1(lookahead) for lookahead in lookaheads)
+        return LR1Item(self.production, lookaheads, stack_position=self.stack_position)
 
     def __repr__(self) -> str:
         head = "".join(

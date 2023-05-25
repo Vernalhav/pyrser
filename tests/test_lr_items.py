@@ -93,6 +93,23 @@ def test_lr1_items_from_production() -> None:
     assert expected == items_from_production(production, end_of_chain)
 
 
+def test_lr0_to_lr1_preserves_stack_position() -> None:
+    A = Nonterminal("A")
+    a = Terminal("a")
+    b = Terminal("b")
+    end_of_chain = Terminal("#")
+
+    line = ProductionLine(A, (b, a))
+    item = LRItem(line).next()
+
+    expected = (
+        item.to_lr1(b),
+        item.to_lr1(end_of_chain),
+    )
+
+    assert expected == item.to_lr1([b, end_of_chain])
+
+
 def test_lr1_items_value_semantics() -> None:
     A = Nonterminal("A")
     a = Terminal("a")
