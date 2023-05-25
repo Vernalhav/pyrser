@@ -50,6 +50,8 @@ class GroupedDict(Generic[K1, K2, V], dict[K1, dict[K2, V]]):
     def __setitem__(self, key: K1 | tuple[K1, K2], value: V | dict[K2, V]) -> None:
         if isinstance(key, tuple) and not isinstance(value, dict):
             k1, k2 = key
+            if k1 not in self:
+                self[k1] = {}
             return super().__getitem__(k1).__setitem__(k2, value)
         if not isinstance(key, tuple) and isinstance(value, dict):
             return super().__setitem__(key, value)
