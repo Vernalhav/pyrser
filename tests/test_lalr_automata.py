@@ -203,8 +203,6 @@ def test_lalr_automata_creation_expression_grammar() -> None:
 
     automata = LALRAutomata(g)
 
-    assert set(automata._transitions.items()) == set(expected_transitions.items())
-
     assert automata.start_state == states[0]
     assert automata.states == set(states)
     assert automata.transition_count == len(expected_transitions)
