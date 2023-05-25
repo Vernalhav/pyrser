@@ -1,3 +1,5 @@
+from itertools import chain
+
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.nonterminals import Nonterminal
 from compilers.grammar.productions import Production
@@ -113,3 +115,86 @@ def test_lalr_automata_creation_pointer_grammar() -> None:
     assert automata.transition_count == LRAutomata(g).transition_count
     assert automata.start_state == states[0]
     assert automata.states == set(states)
+
+
+def test_lalr_automata_creation_expression_grammar() -> None:
+    # S -> E
+    # E -> E + T | T
+    # T -> T * F | F
+    # F -> (E) | num
+
+    # TODO: get_terminals(iter...) to sumplify tests
+    S = Nonterminal("S")
+    E = Nonterminal("E")
+    T = Nonterminal("T")
+    F = Nonterminal("F")
+    plus = Terminal("+")
+    mult = Terminal("*")
+    open = Terminal("(")
+    close = Terminal(")")
+    num = Terminal("num")
+
+    s_prod = Production(S, [E])
+    e_prod = Production(E, [(E, plus, T), T])
+    t_prod = Production(T, [(T, mult, F), F])
+    f_prod = Production(F, [(open, E, close), num])
+
+    g = Grammar([s_prod, e_prod, t_prod, f_prod], S)
+    end_of_chain = get_end_of_chain(g)
+
+    (start_item,) = items_from_production(s_prod)
+    e_to_e, e_to_t = items_from_production(e_prod)
+    t_to_t, t_to_f = items_from_production(t_prod)
+    f_to_e, f_to_num = items_from_production(f_prod)
+
+    # TODO: Add next(int) to advance N spaces
+    states = (
+        LR1Set(start_item.to_lr1([end_of_chain])),
+        LR1Set(
+            chain(
+                start_item.next().to_lr1([end_of_chain]),
+                e_to_e.next().to_lr1([end_of_chain, plus]),
+            )
+        ),
+        LR1Set(e_to_e.next().next().to_lr1([end_of_chain, plus, close])),
+        LR1Set(t_to_f.next().to_lr1([end_of_chain, plus, close, mult])),
+        LR1Set(
+            chain(
+                e_to_e.next().next().next().to_lr1([end_of_chain, plus, close]),
+                t_to_t.next().to_lr1([end_of_chain, plus, close, mult]),
+            )
+        ),
+        LR1Set(
+            chain(
+                e_to_t.next().to_lr1([end_of_chain, plus, close]),
+                t_to_t.next().to_lr1([end_of_chain, plus, close, mult]),
+            )
+        ),
+        LR1Set(
+            t_to_t.next().next().to_lr1([end_of_chain, plus, close, mult]),
+        ),
+        LR1Set(
+            f_to_e.next().to_lr1([end_of_chain, plus, close, mult]),
+        ),
+        LR1Set(
+            t_to_t.next().next().next().to_lr1([end_of_chain, plus, close, mult]),
+        ),
+        LR1Set(
+            chain(
+                f_to_e.next().next().to_lr1([end_of_chain, plus, close, mult]),
+                e_to_e.next().to_lr1([plus, close]),
+            )
+        ),
+        LR1Set(
+            f_to_num.next().to_lr1([end_of_chain, plus, close, mult]),
+        ),
+        LR1Set(
+            f_to_e.next().next().next().to_lr1([end_of_chain, plus, close, mult]),
+        ),
+    )
+
+    automata = LALRAutomata(g)
+
+    assert automata.start_state == states[0]
+    assert automata.states == set(states)
+    assert automata.transition_count == LRAutomata(g).transition_count
