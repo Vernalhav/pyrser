@@ -2,6 +2,7 @@ from itertools import chain
 
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.productions import Production
+from compilers.grammar.symbols import Symbol
 from compilers.parser.lalr_automata import (
     LALRAutomata,
     LookaheadRelationships,
@@ -13,6 +14,8 @@ from compilers.parser.lr_items import items_from_production
 from compilers.parser.lr_sets import LR0Set, LR1Set
 from compilers.utils import GroupedDict
 from tests.utils import get_nonterminals, get_terminals
+
+Transitions = dict[tuple[LR1Set, Symbol], LR1Set]
 
 
 def test_lookahead_relationships() -> None:
@@ -173,8 +176,37 @@ def test_lalr_automata_creation_expression_grammar() -> None:
         ),
     )
 
+    expected_transitions: Transitions = {
+        (states[0], E): states[1],
+        (states[0], F): states[3],
+        (states[0], T): states[5],
+        (states[0], open): states[7],
+        (states[0], num): states[10],
+        (states[1], plus): states[2],
+        (states[2], F): states[3],
+        (states[2], T): states[4],
+        (states[2], open): states[7],
+        (states[2], num): states[10],
+        (states[4], mult): states[6],
+        (states[5], mult): states[6],
+        (states[6], open): states[7],
+        (states[6], F): states[8],
+        (states[6], num): states[10],
+        (states[7], F): states[3],
+        (states[7], T): states[5],
+        (states[7], open): states[7],
+        (states[7], E): states[9],
+        (states[7], num): states[10],
+        (states[9], plus): states[2],
+        (states[9], close): states[11],
+    }
+
     automata = LALRAutomata(g)
+
+    assert set(automata._transitions.items()) == set(expected_transitions.items())
 
     assert automata.start_state == states[0]
     assert automata.states == set(states)
-    assert automata.transition_count == LRAutomata(g).transition_count
+    assert automata.transition_count == len(expected_transitions)
+    for (start, symbol), end in expected_transitions.items():
+        assert automata.get_transition(start, symbol) == end
