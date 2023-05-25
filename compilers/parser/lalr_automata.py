@@ -6,10 +6,10 @@ from compilers.grammar.symbols import Symbol
 from compilers.grammar.terminals import Terminal
 from compilers.parser.lr_automata import LRAutomata
 from compilers.parser.lr_items import LRItem
-from compilers.parser.lr_sets import LR0Set, LR1Set, LRSet
+from compilers.parser.lr_sets import LR0Set, LR1Set
 from compilers.utils import GroupedDefaultDict, GroupedDict, flatten
 
-StateLookaheads = GroupedDict[LRSet, LRItem, set[Terminal]]
+StateLookaheads = GroupedDict[LR0Set, LRItem, set[Terminal]]
 PropagationTable = GroupedDict[LR0Set, LRItem, dict[LR0Set, set[LRItem]]]
 GeneratedLookaheads = GroupedDict[Symbol, LRItem, set[Terminal]]
 PropagatedLookaheads = GroupedDict[Symbol, LRItem, set[LRItem]]
