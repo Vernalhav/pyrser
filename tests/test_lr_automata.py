@@ -109,10 +109,10 @@ def test_lr_sets_creation_recursive_grammar() -> None:
         LR0Set({p_to_l.next(), p_to_paren.next()}),
         LR0Set({start_item.next(), l_to_lp.next()}),
         LR0Set({l_to_p.next()}),
-        LR0Set({l_to_lp.next().next()}),
-        LR0Set({p_to_paren.next().next()}),
-        LR0Set({p_to_l.next().next(), l_to_lp.next()}),
-        LR0Set({p_to_l.next().next().next()}),
+        LR0Set({l_to_lp.next(2)}),
+        LR0Set({p_to_paren.next(2)}),
+        LR0Set({p_to_l.next(2), l_to_lp.next()}),
+        LR0Set({p_to_l.next(3)}),
     )
 
     expected_transitions: Transitions = {

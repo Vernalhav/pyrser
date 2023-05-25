@@ -37,12 +37,12 @@ class LRItem:
     def tail(self) -> Chain:
         return self.production.derivation[self.stack_position :]
 
-    def next(self) -> Self:
-        if self.complete:
-            raise ValueError(
-                "Cannot advance an LR Item that is at the end of the production"
-            )
-        return dataclasses.replace(self, stack_position=self.stack_position + 1)
+    def next(self, amount: int = 1) -> Self:
+        if amount < 0:
+            raise ValueError("Advance amount must be non-negative")
+        if self.stack_position + amount > len(self.production.derivation):
+            raise ValueError("Cannot advance an LR Item past the end of the production")
+        return dataclasses.replace(self, stack_position=self.stack_position + amount)
 
     @overload
     def to_lr1(self, lookaheads: Terminal) -> LR1Item:

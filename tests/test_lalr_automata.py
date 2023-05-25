@@ -51,7 +51,7 @@ def test_lookahead_relationships() -> None:
                 R: {start_item: {s_to_r.next()}},
                 times: {start_item: {l_to_r.next()}},
                 id: {start_item: {l_to_id.next()}},
-                eq: {s_to_l.next(): {s_to_l.next().next()}},
+                eq: {s_to_l.next(): {s_to_l.next(2)}},
             }
         ),
     )
@@ -92,10 +92,10 @@ def test_lalr_automata_creation_pointer_grammar() -> None:
         LR1Set({s_to_r.next()}),
         LR1Set({l_to_r.next(), l_to_r_eq.next()}),
         LR1Set({l_to_id.next(), l_to_id_eq.next()}),
-        LR1Set({s_to_l.next().next()}),
-        LR1Set({l_to_r.next().next(), l_to_r_eq.next().next()}),
+        LR1Set({s_to_l.next(2)}),
+        LR1Set({l_to_r.next(2), l_to_r_eq.next(2)}),
         LR1Set({r_to_l.next(), r_to_l_eq.next()}),
-        LR1Set({s_to_l.next().next().next()}),
+        LR1Set({s_to_l.next(3)}),
     )
 
     automata = LALRAutomata(g)
@@ -128,7 +128,6 @@ def test_lalr_automata_creation_expression_grammar() -> None:
     t_to_t, t_to_f = items_from_production(t_prod)
     f_to_e, f_to_num = items_from_production(f_prod)
 
-    # TODO: Add next(int) to advance N spaces
     states = (
         LR1Set(start_item.to_lr1([end_of_chain])),
         LR1Set(
@@ -137,11 +136,11 @@ def test_lalr_automata_creation_expression_grammar() -> None:
                 e_to_e.next().to_lr1([end_of_chain, plus]),
             )
         ),
-        LR1Set(e_to_e.next().next().to_lr1([end_of_chain, plus, close])),
+        LR1Set(e_to_e.next(2).to_lr1([end_of_chain, plus, close])),
         LR1Set(t_to_f.next().to_lr1([end_of_chain, plus, close, mult])),
         LR1Set(
             chain(
-                e_to_e.next().next().next().to_lr1([end_of_chain, plus, close]),
+                e_to_e.next(3).to_lr1([end_of_chain, plus, close]),
                 t_to_t.next().to_lr1([end_of_chain, plus, close, mult]),
             )
         ),
@@ -152,17 +151,17 @@ def test_lalr_automata_creation_expression_grammar() -> None:
             )
         ),
         LR1Set(
-            t_to_t.next().next().to_lr1([end_of_chain, plus, close, mult]),
+            t_to_t.next(2).to_lr1([end_of_chain, plus, close, mult]),
         ),
         LR1Set(
             f_to_e.next().to_lr1([end_of_chain, plus, close, mult]),
         ),
         LR1Set(
-            t_to_t.next().next().next().to_lr1([end_of_chain, plus, close, mult]),
+            t_to_t.next(3).to_lr1([end_of_chain, plus, close, mult]),
         ),
         LR1Set(
             chain(
-                f_to_e.next().next().to_lr1([end_of_chain, plus, close, mult]),
+                f_to_e.next(2).to_lr1([end_of_chain, plus, close, mult]),
                 e_to_e.next().to_lr1([plus, close]),
             )
         ),
@@ -170,7 +169,7 @@ def test_lalr_automata_creation_expression_grammar() -> None:
             f_to_num.next().to_lr1([end_of_chain, plus, close, mult]),
         ),
         LR1Set(
-            f_to_e.next().next().next().to_lr1([end_of_chain, plus, close, mult]),
+            f_to_e.next(3).to_lr1([end_of_chain, plus, close, mult]),
         ),
     )
 
