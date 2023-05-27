@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generic
 
-from compilers.parser.lr_items import LRItem
+from compilers.grammar.productions import ProductionLine
 from compilers.parser.lr_sets import StateType
 
 
@@ -17,12 +17,17 @@ class Shift(Action, Generic[StateType]):
 
 @dataclass(frozen=True)
 class Reduce(Action):
-    item: LRItem
+    item: ProductionLine
 
 
 @dataclass(frozen=True)
 class Goto(Generic[StateType]):
     target: StateType
+
+
+@dataclass(frozen=True)
+class Accept(Action):
+    pass
 
 
 @dataclass(frozen=True)
