@@ -68,7 +68,11 @@ class LRItem:
             str(symbol) for symbol in self.production.derivation[: self.stack_position]
         )
         tail = "".join(str(symbol) for symbol in self.tail)
-        return f"{self.production.nonterminal} -> {head} ⋅ {tail}"
+
+        s = f"{self.production.nonterminal} -> {head} ⋅"
+        if len(tail) > 0:
+            s += f" {tail}"
+        return s
 
 
 @dataclass(frozen=True)
