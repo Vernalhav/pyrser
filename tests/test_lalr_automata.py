@@ -1,8 +1,12 @@
+import itertools
 from itertools import chain
+
+import pytest
 
 from compilers.grammar.grammar import Grammar
 from compilers.grammar.productions import Production
-from compilers.grammar.symbols import Symbol
+from compilers.grammar.symbols import Symbol, is_nonterminal
+from compilers.parser import actions
 from compilers.parser.lalr_automata import (
     LALRAutomata,
     LookaheadRelationships,
@@ -208,3 +212,66 @@ def test_lalr_automata_creation_expression_grammar() -> None:
     assert automata.transition_count == len(expected_transitions)
     for (start, symbol), end in expected_transitions.items():
         assert automata.get_transition(start, symbol) == end
+
+
+def test_lalr_automata_parsing_table_creation() -> None:
+    Sp, S, C = get_nonterminals("Sp", "S", "C")
+    c, d = get_terminals("c", "d")
+
+    start_prod = Production(Sp, [(S,)])
+    s_prod = Production(S, [(C, C)])
+    c_prod = Production(C, [(c, C), d])
+
+    g = Grammar([start_prod, s_prod, c_prod], Sp)
+    end_of_chain = get_end_of_chain(g)
+    automata = LALRAutomata(g)
+
+    (start_item,) = items_from_production(start_prod)
+    (s_to_c,) = items_from_production(s_prod)
+    c_to_c, c_to_d = items_from_production(c_prod)
+
+    states = (
+        LR1Set(start_item.to_lr1([end_of_chain])),
+        LR1Set(start_item.next().to_lr1([end_of_chain])),
+        LR1Set(s_to_c.next().to_lr1([end_of_chain])),
+        LR1Set(c_to_c.next().to_lr1([c, d, end_of_chain])),
+        LR1Set(c_to_d.next().to_lr1([c, d, end_of_chain])),
+        LR1Set(s_to_c.next(2).to_lr1([end_of_chain])),
+        LR1Set(c_to_c.next(2).to_lr1([c, d, end_of_chain])),
+    )
+
+    valid_transitions: dict[tuple[LR1Set, Symbol], actions.Action | actions.Goto] = {
+        (states[0], c): actions.Shift(states[3]),
+        (states[0], d): actions.Shift(states[4]),
+        (states[0], S): actions.Goto(states[1]),
+        (states[0], C): actions.Goto(states[2]),
+        (states[1], end_of_chain): actions.Accept(),
+        (states[2], c): actions.Shift(states[3]),
+        (states[2], d): actions.Shift(states[4]),
+        (states[2], C): actions.Goto(states[5]),
+        (states[3], c): actions.Shift(states[3]),
+        (states[3], d): actions.Shift(states[4]),
+        (states[3], C): actions.Goto(states[6]),
+        (states[4], c): actions.Reduce(c_to_d.production),
+        (states[4], d): actions.Reduce(c_to_d.production),
+        (states[4], end_of_chain): actions.Reduce(c_to_d.production),
+        (states[5], end_of_chain): actions.Reduce(s_to_c.production),
+        (states[6], c): actions.Reduce(c_to_c.production),
+        (states[6], d): actions.Reduce(c_to_c.production),
+        (states[6], end_of_chain): actions.Reduce(c_to_c.production),
+    }
+
+    assert set(states) == automata.states
+    table = automata.compute_parsing_table()
+
+    # Ignoring types because of mypy bug
+    for key in itertools.product(states, [Sp, S, C, c, d]):
+        state, symbol = key
+        if key in valid_transitions:
+            assert table[state, symbol] == valid_transitions[key]  # type: ignore
+        else:
+            if is_nonterminal(symbol):  # type: ignore
+                with pytest.raises(KeyError):
+                    table[state, symbol]
+            else:
+                assert isinstance(table[state, symbol], actions.Error)  # type: ignore

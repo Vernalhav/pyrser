@@ -2,11 +2,13 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from compilers.grammar.grammar import Grammar
-from compilers.grammar.symbols import Symbol
+from compilers.grammar.symbols import Symbol, is_nonterminal, is_terminal
 from compilers.grammar.terminals import Terminal
+from compilers.parser import actions
 from compilers.parser.lr_automata import LRAutomata
 from compilers.parser.lr_items import LRItem
 from compilers.parser.lr_sets import LR0Set, LR1Set
+from compilers.parser.tables import LRParsingTable
 from compilers.utils import GroupedDefaultDict, GroupedDict, flatten
 
 StateLookaheads = GroupedDict[LR0Set, LRItem, set[Terminal]]
@@ -19,7 +21,7 @@ class LALRAutomata:
     grammar: Grammar
     states: set[LR1Set]
     start_state: LR1Set
-    _transitions: dict[tuple[LR1Set, Symbol], LR1Set]
+    _transitions: GroupedDict[LR1Set, Symbol, LR1Set]
 
     def __init__(self, g: Grammar) -> None:
         self.grammar = g
@@ -27,10 +29,33 @@ class LALRAutomata:
 
     @property
     def transition_count(self) -> int:
-        return len(self._transitions)
+        return self._transitions.flat_len()
 
     def get_transition(self, state: LR1Set, symbol: Symbol) -> LR1Set:
-        return self._transitions[(state, symbol)]
+        return self._transitions[state, symbol]
+
+    def compute_parsing_table(self) -> LRParsingTable[LR1Set]:
+        table = LRParsingTable[LR1Set]()
+        start_item, *_ = self.start_state.kernel
+        accept_item = start_item.next()
+
+        for state in self.states:
+            for item in state.kernel:
+                if item == accept_item:
+                    table[state, item.lookahead] = actions.Accept()
+                elif item.complete:
+                    table[state, item.lookahead] = actions.Reduce(item.production)
+
+            if state not in self._transitions:
+                continue
+
+            for symbol, target_state in self._transitions[state].items():
+                if is_nonterminal(symbol):
+                    table[state, symbol] = actions.Goto(target_state)
+                elif is_terminal(symbol):
+                    table[state, symbol] = actions.Shift(target_state)
+
+        return table
 
     def _compute_states_and_transitions(self) -> None:
         lr0_automata = LRAutomata(self.grammar)
@@ -51,10 +76,10 @@ class LALRAutomata:
 
         self.start_state = lr0_to_lr1_states[lr0_automata.start_state]
 
-        self._transitions = {}
+        self._transitions = GroupedDict()
         for lr0_start, symbol, lr0_end in lr0_automata.transitions:
             start, end = lr0_to_lr1_states[lr0_start], lr0_to_lr1_states[lr0_end]
-            self._transitions[(start, symbol)] = end
+            self._transitions[start, symbol] = end
 
     def _propagate_lookaheads(self, automata: LRAutomata) -> StateLookaheads:
         lookaheads, table = self._compute_initial_lookaheads_and_propagations(automata)
