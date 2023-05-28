@@ -40,7 +40,7 @@ class LALRAutomata:
         accept_item = start_item.next()
 
         for state in self.states:
-            for item in state.kernel:
+            for item in state:
                 if item == accept_item:
                     table[state, item.lookahead] = actions.Accept()
                 elif item.complete:

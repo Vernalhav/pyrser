@@ -216,11 +216,43 @@ def test_lalr_automata_creation_expression_grammar() -> None:
         assert automata.get_transition(start, symbol) == end
 
 
+def test_lalr_automata_parsing_table_creation_null_derivation() -> None:
+    S, A = get_nonterminals("S", "A")
+    (a,) = get_terminals("a")
+
+    start_prod = Production(S, [A])
+    a_prod = Production(A, [a, ()])
+
+    g = Grammar([start_prod, a_prod], S)
+    end_of_chain = get_end_of_chain(g)
+    automata = LALRAutomata(g)
+
+    (start_item,) = items_from_production(start_prod)
+    a_to_a, a_to_epsilon = items_from_production(a_prod)
+
+    states = (
+        LR1Set({start_item.to_lr1(end_of_chain)}),
+        LR1Set({start_item.next().to_lr1(end_of_chain)}),
+        LR1Set({a_to_a.next().to_lr1(end_of_chain)}),
+    )
+
+    valid_transitions: LRTableTransitions = {
+        (states[0], a): actions.Shift(states[2]),
+        (states[0], end_of_chain): actions.Reduce(a_to_epsilon.production),
+        (states[0], A): actions.Goto(states[1]),
+        (states[1], end_of_chain): actions.Accept(),
+        (states[2], end_of_chain): actions.Reduce(a_to_a.production),
+    }
+
+    table = automata.compute_parsing_table()
+    _compare_lr_tables(states, valid_transitions, table, g)
+
+
 def test_lalr_automata_parsing_table_creation() -> None:
     Sp, S, C = get_nonterminals("Sp", "S", "C")
     c, d = get_terminals("c", "d")
 
-    start_prod = Production(Sp, [(S,)])
+    start_prod = Production(Sp, [S])
     s_prod = Production(S, [(C, C)])
     c_prod = Production(C, [(c, C), d])
 
