@@ -1,5 +1,6 @@
 import itertools
 from itertools import chain
+from typing import Iterable
 
 import pytest
 
@@ -15,7 +16,8 @@ from compilers.parser.lalr_automata import (
 )
 from compilers.parser.lr_automata import LRAutomata
 from compilers.parser.lr_items import items_from_production
-from compilers.parser.lr_sets import LR0Set, LR1Set
+from compilers.parser.lr_sets import LR0Set, LR1Set, LRSet
+from compilers.parser.tables import LRParsingTable
 from compilers.utils import GroupedDict
 from tests.utils import get_nonterminals, get_terminals
 
@@ -240,7 +242,7 @@ def test_lalr_automata_parsing_table_creation() -> None:
         LR1Set(c_to_c.next(2).to_lr1([c, d, end_of_chain])),
     )
 
-    valid_transitions: dict[tuple[LR1Set, Symbol], actions.Action | actions.Goto] = {
+    valid_transitions: LRTableTransitions = {
         (states[0], c): actions.Shift(states[3]),
         (states[0], d): actions.Shift(states[4]),
         (states[0], S): actions.Goto(states[1]),
@@ -261,17 +263,27 @@ def test_lalr_automata_parsing_table_creation() -> None:
         (states[6], end_of_chain): actions.Reduce(c_to_c.production),
     }
 
-    assert set(states) == automata.states
     table = automata.compute_parsing_table()
+    _compare_lr_tables(states, valid_transitions, table, g)
 
-    # Ignoring types because of mypy bug
-    for key in itertools.product(states, g.symbols):
+
+LRTableTransitions = dict[tuple[LRSet, Symbol], actions.Action | actions.Goto]
+
+
+def _compare_lr_tables(
+    states: Iterable[LRSet],
+    valid_transitions: LRTableTransitions,
+    table: LRParsingTable,
+    g: Grammar,
+) -> None:
+    symbols = g.symbols | {get_end_of_chain(g)}
+    for key in itertools.product(states, symbols):
         state, symbol = key
         if key in valid_transitions:
-            assert table[state, symbol] == valid_transitions[key]  # type: ignore
+            assert table[state, symbol] == valid_transitions[key]
         else:
-            if is_nonterminal(symbol):  # type: ignore
+            if is_nonterminal(symbol):
                 with pytest.raises(KeyError):
                     table[state, symbol]
             else:
-                assert isinstance(table[state, symbol], actions.Error)  # type: ignore
+                assert isinstance(table[state, symbol], actions.Error)
