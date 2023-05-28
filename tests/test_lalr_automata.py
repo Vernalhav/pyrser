@@ -265,7 +265,7 @@ def test_lalr_automata_parsing_table_creation() -> None:
     table = automata.compute_parsing_table()
 
     # Ignoring types because of mypy bug
-    for key in itertools.product(states, [Sp, S, C, c, d]):
+    for key in itertools.product(states, g.symbols):
         state, symbol = key
         if key in valid_transitions:
             assert table[state, symbol] == valid_transitions[key]  # type: ignore
