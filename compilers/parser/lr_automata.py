@@ -6,6 +6,8 @@ from compilers.grammar.symbols import Symbol
 from compilers.parser.lr_items import LRItem
 from compilers.parser.lr_sets import LR0Set
 
+queue = deque
+
 
 class LRAutomata:
     grammar: Grammar
@@ -14,6 +16,9 @@ class LRAutomata:
     _transitions: dict[tuple[LR0Set, Symbol], LR0Set]
 
     def __init__(self, g: Grammar) -> None:
+        if not is_augmented(g):
+            raise ValueError("Given grammar is not augmented with start production")
+
         self.grammar = g
         self._compute_states_and_transitions()
 
@@ -30,12 +35,9 @@ class LRAutomata:
         return self._transitions[(state, symbol)]
 
     def _compute_states_and_transitions(self) -> None:
-        if not is_augmented(self.grammar):
-            raise ValueError("Given grammar is not augmented with start production")
-
         self.states = set()
         self._transitions = {}
-        work: deque[LR0Set] = deque()
+        work = queue[LR0Set]()
 
         start_item = get_initial_lr_item(self.grammar)
         self.start_state = LR0Set({start_item})
