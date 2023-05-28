@@ -40,14 +40,14 @@ class LRAutomata:
         work = queue[LR0Set]()
 
         start_item = get_initial_lr_item(self.grammar)
-        self.start_state = LR0Set({start_item})
+        self.start_state = LR0Set({start_item}).closure(self.grammar)
         work.append(self.start_state)
 
         while len(work) > 0:
-            current_set = work.popleft()
+            current_set = work.popleft().closure(self.grammar)
             self.states.add(current_set)
 
-            transition_sets = compute_transition_sets(current_set.closure(self.grammar))
+            transition_sets = compute_transition_sets(current_set)
             for symbol, transition_set in transition_sets:
                 self._transitions[(current_set, symbol)] = transition_set
                 if transition_set not in self.states:

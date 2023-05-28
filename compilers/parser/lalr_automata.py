@@ -70,7 +70,7 @@ class LALRAutomata:
                 for lr0_item in lr0_state.kernel
                 for lookahead in lookaheads[lr0_state, lr0_item]
             )
-            lr1_state = LR1Set(kernel_items)
+            lr1_state = LR1Set(kernel_items).closure(self.grammar)
             self.states.add(lr1_state)
             lr0_to_lr1_states[lr0_state] = lr1_state
 
