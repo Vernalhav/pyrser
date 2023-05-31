@@ -17,7 +17,7 @@ class Shift(Action, Generic[StateType]):
 
 @dataclass(frozen=True)
 class Reduce(Action):
-    item: ProductionLine
+    production: ProductionLine
 
 
 @dataclass(frozen=True)
